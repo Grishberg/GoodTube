@@ -28,7 +28,7 @@
             android:tag="text"
             android:gravity="center"
             android:textColor="@android:color/white"
-            android:background="#33AA33"/>
+            android:background="#ff2080aa"/>
 
         <TextView
             android:id="@+id/desc"
