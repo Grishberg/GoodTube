@@ -3,43 +3,115 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
-
-
-    <ListView
-        android:id="@+id/listView"
+    <LinearLayout
+        android:orientation="vertical"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:tag="list"
-        />
+        android:layout_height="match_parent">
 
-    <com.grishberg.goodtube.gui.PlayerLayout
+        <!-- блок поиска -->
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="#ffff782b" >
+
+            <TextView
+                android:text="@string/search"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+
+            <EditText
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/searchTextEdit"
+                android:layout_marginLeft="8dp"
+                android:singleLine="true" />
+
+        </LinearLayout>
+        <!-- прогресс загрузки -->
+        <ProgressBar
+            android:id="@+id/video_list_progress"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="gone"/>
+
+        <!-- список видео -->
+
+        <ListView
+            android:id="@+id/video_list_view"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@color/hint_foreground_material_dark"
+            android:tag="list"/>
+
+    </LinearLayout>
+
+    <!-- Layout всплывающего плеера -->
+    <com.grishberg.goodtube.gui.layout.PlayerLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:id="@+id/dragLayout"
         android:orientation="vertical">
 
-        <TextView
-            android:id="@+id/header"
-            android:layout_width="match_parent"
-            android:layout_height="128dp"
-            android:fontFamily="sans-serif-thin"
-            android:textSize="25sp"
-            android:text="Drag me to the bottom"
-            android:tag="text"
-            android:gravity="center"
-            android:textColor="@android:color/white"
-            android:background="#ff2080aa"/>
+        <!-- Проигрыватель -->
+        <FrameLayout
+            android:id="@+id/fragment_youtube_player"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="right"
+            android:background="#ff000000">
 
-        <TextView
-            android:id="@+id/desc"
-            android:tag="desc"
-            android:textSize="35sp"
-            android:gravity="center"
-            android:text="info about video"
-            android:textColor="@android:color/white"
+        </FrameLayout>
+
+        <!-- Описание -->
+        <LinearLayout
+            android:id="@+id/descriptionPanel"
+            android:orientation="vertical"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:background="#FF00FF"/>
+            android:background="@android:color/white"
+            >
 
-    </com.grishberg.goodtube.gui.PlayerLayout>
+            <TextView
+                android:id="@+id/tvDescription"
+                android:tag="desc"
+                android:textSize="20sp"
+                android:gravity="top"
+                android:text="info about video"
+                android:textColor="@android:color/black"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@android:color/white"
+                android:layout_margin="8dp"/>
+
+            <TextView
+                android:id="@+id/tvViewCount"
+                android:tag="views"
+                android:textSize="16sp"
+                android:gravity="top"
+                android:text="количество просмотров"
+                android:textColor="@android:color/black"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@android:color/white"
+                android:layout_margin="8dp"/>
+
+            <TextView
+                android:id="@+id/tvDuraion"
+                android:tag="views"
+                android:textSize="16sp"
+                android:gravity="top"
+                android:text="продолжительность"
+                android:textColor="@android:color/black"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@android:color/white"
+                android:layout_margin="8dp"/>
+
+        </LinearLayout>
+
+    </com.grishberg.goodtube.gui.layout.PlayerLayout>
+
+
 </FrameLayout>

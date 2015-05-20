@@ -1,9 +1,11 @@
-package com.grishberg.goodtube;
+package com.grishberg.goodtube.gui.activity;
 
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
+
+import com.grishberg.goodtube.R;
 
 
 public class VideoListActivity extends ActionBarActivity
