@@ -101,128 +101,6 @@ public class PlayerLayout extends FrameLayout//ViewGroup
 		return false;
 	}
 
-	// класс
-
-	private class DragHelperCallback extends ViewDragHelper.Callback
-	{
-		public void onViewDragStateChanged(int state)
-		{
-			switch (state)
-			{
-				case ViewDragHelper.STATE_DRAGGING:
-					if (mDragOffsetY == 0.0 )
-					{
-						// если перетаскивание сверху вниз
-						mYoutubePlayer.setPlayerStyle(YouTubePlayer.PlayerStyle.CHROMELESS);
-					}
-					// начало перетаскивания
-					Log.d(TAG,"STATE_DRAGGING");
-					if(mLastWidth == 0)
-					{
-						mLastHeight		= mHeaderView.getHeight();
-						mLastWidth		= mHeaderView.getWidth();
-					}
-				break;
-
-				case ViewDragHelper.STATE_IDLE:
-					// завершилось перетаскивание
-					// в зависимости от того вверху или внизу оказался экран, изменить тип плеера
-					if(mDragOffsetY == 0.0)
-					{
-						// наверху
-						mYoutubePlayer.setPlayerStyle(YouTubePlayer.PlayerStyle.DEFAULT);
-					}
-
-					Log.d(TAG,"STATE_IDLE mDragOffsetX="+mDragOffsetX+", mDragOffsetY="+mDragOffsetY);
-					break;
-
-				case ViewDragHelper.STATE_SETTLING:
-					Log.d(TAG,"STATE_SETTLING");
-					break;
-			}
-		}
-
-		@Override
-		public boolean tryCaptureView(View child, int pointerId)
-		{
-			return child == mHeaderView;
-		}
-
-		// функция вызывается во время движения
-		@Override
-		public void onViewPositionChanged(View changedView, int left, int top, int dx, int dy)
-		{
-			mTop	= top;
-			mLeft	= left;
-			mDragOffsetY		= (float) top / mDragRangeY;
-			if (mDragRangeX != 0.0) mDragOffsetX		= (float) left / mDragRangeX;
-			float multFactor	= 1.0f - mDragOffsetY / 2.0f;
-
-
-
-			//mHeaderView.setPivotX(mLastWidth);
-			//mHeaderView.setPivotY(mLastHeight);
-			//mHeaderView.setScaleX(multFactor);
-			//mHeaderView.setScaleY(multFactor);
-
-			Log.d(TAG, "onPositionChanged x=" + left + ", y=" + top+ ", dx="+dx+", dy="+dy);
-			// изменение размеров
-
-			ViewGroup.LayoutParams param = mHeaderView.getLayoutParams();
-			param.height	= (int)(mLastHeight	* multFactor);
-			param.width		= (int)(mLastWidth	* multFactor);
-			mHeaderView.setLayoutParams(param);
-
-			// скрытие панели с описанием
-			mDescriptionView.setAlpha(1 - mDragOffsetY);
-			requestLayout();
-		}
-
-		// событие при отпускании контрола
-		@Override
-		public void onViewReleased(View releasedChild, float xvel, float yvel)
-		{
-			int top = getPaddingTop();
-			if (yvel > 0 || (yvel == 0 && mDragOffsetY > 0.5f))
-			{
-				top += mDragRangeY;
-			}
-			mDragHelper.settleCapturedViewAt(releasedChild.getLeft(), top);
-			invalidate();
-		}
-
-		@Override
-		public int getViewVerticalDragRange(View child)
-		{
-			return mDragRangeY;
-		}
-
-		@Override
-		public int getViewHorizontalDragRange(View child)
-		{
-			return mDragRangeX;
-		}
-
-		@Override
-		public int clampViewPositionVertical(View child, int top, int dy)
-		{
-			final int topBound = getPaddingTop();
-			final int bottomBound = getHeight() - mHeaderView.getHeight() - mHeaderView.getPaddingBottom();
-
-			final int newTop = Math.min(Math.max(top, topBound), bottomBound);
-			return newTop;
-		}
-
-		@Override
-		public int clampViewPositionHorizontal(View child, int left, int dx)
-		{
-			final int leftBound = getPaddingLeft();
-			final int RightBound = getWidth() - mHeaderView.getWidth() - mHeaderView.getPaddingRight();
-
-			final int newLeft = Math.min(Math.max(left, leftBound), RightBound);
-			return newLeft;
-		}
-	}
 
 	@Override
 	public void computeScroll()
@@ -393,4 +271,131 @@ public class PlayerLayout extends FrameLayout//ViewGroup
 				r,
 				mTop + b);
 	}
+
+	//---------------- класс ---------------
+
+	private class DragHelperCallback extends ViewDragHelper.Callback
+	{
+		public void onViewDragStateChanged(int state)
+		{
+			switch (state)
+			{
+				case ViewDragHelper.STATE_DRAGGING:
+					if (mDragOffsetY == 0.0 )
+					{
+						// если перетаскивание сверху вниз
+						mYoutubePlayer.setPlayerStyle(YouTubePlayer.PlayerStyle.CHROMELESS);
+					}
+					// начало перетаскивания
+					Log.d(TAG,"STATE_DRAGGING");
+					if(mLastWidth == 0)
+					{
+						mLastHeight		= mHeaderView.getHeight();
+						mLastWidth		= mHeaderView.getWidth();
+					}
+					break;
+
+				case ViewDragHelper.STATE_IDLE:
+					// завершилось перетаскивание
+					// в зависимости от того вверху или внизу оказался экран, изменить тип плеера
+					if(mDragOffsetY == 0.0)
+					{
+						// наверху
+						mYoutubePlayer.setPlayerStyle(YouTubePlayer.PlayerStyle.DEFAULT);
+					}
+
+					Log.d(TAG,"STATE_IDLE mDragOffsetX="+mDragOffsetX+", mDragOffsetY="+mDragOffsetY);
+					break;
+
+				case ViewDragHelper.STATE_SETTLING:
+					Log.d(TAG,"STATE_SETTLING");
+					break;
+			}
+		}
+
+		@Override
+		public boolean tryCaptureView(View child, int pointerId)
+		{
+			return child == mHeaderView;
+		}
+
+		// функция вызывается во время движения
+		@Override
+		public void onViewPositionChanged(View changedView, int left, int top, int dx, int dy)
+		{
+			mTop	= top;
+			mLeft	= left;
+			mDragOffsetY		= (float) top / mDragRangeY;
+			if (mDragRangeX != 0.0) mDragOffsetX		= (float) left / mDragRangeX;
+			float multFactor	= 1.0f - mDragOffsetY / 2.0f;
+
+
+
+			//mHeaderView.setPivotX(mLastWidth);
+			//mHeaderView.setPivotY(mLastHeight);
+			//mHeaderView.setScaleX(multFactor);
+			//mHeaderView.setScaleY(multFactor);
+
+			Log.d(TAG, "onPositionChanged x=" + left + ", y=" + top+ ", dx="+dx+", dy="+dy);
+			// изменение размеров
+
+			ViewGroup.LayoutParams param = mHeaderView.getLayoutParams();
+			param.height	= (int)(mLastHeight	* multFactor);
+			param.width		= (int)(mLastWidth	* multFactor);
+			mHeaderView.setLayoutParams(param);
+			mHeaderView.setLeft(mLeft);
+
+			// скрытие панели с описанием
+			mDescriptionView.setAlpha(1 - mDragOffsetY);
+			requestLayout();
+		}
+
+		// событие при отпускании контрола
+		@Override
+		public void onViewReleased(View releasedChild, float xvel, float yvel)
+		{
+			int top		= getPaddingTop();
+			int left	= getPaddingLeft();
+			if (yvel > 0 || (yvel == 0 && mDragOffsetY > 0.5f))
+			{
+				top		+= mDragRangeY;
+				left	+= mDragRangeX;
+			}
+			mDragHelper.settleCapturedViewAt(/*releasedChild.getLeft()*/left, top);
+			invalidate();
+		}
+
+		@Override
+		public int getViewVerticalDragRange(View child)
+		{
+			return mDragRangeY;
+		}
+
+		@Override
+		public int getViewHorizontalDragRange(View child)
+		{
+			return mDragRangeX;
+		}
+
+		@Override
+		public int clampViewPositionVertical(View child, int top, int dy)
+		{
+			final int topBound = getPaddingTop();
+			final int bottomBound = getHeight() - mHeaderView.getHeight() - mHeaderView.getPaddingBottom();
+
+			final int newTop = Math.min(Math.max(top, topBound), bottomBound);
+			return newTop;
+		}
+
+		@Override
+		public int clampViewPositionHorizontal(View child, int left, int dx)
+		{
+			final int leftBound = getPaddingLeft();
+			final int RightBound = getWidth() - mHeaderView.getWidth() - mHeaderView.getPaddingRight();
+
+			final int newLeft = Math.min(Math.max(left, leftBound), RightBound);
+			return newLeft;
+		}
+	}
+
 }
