@@ -72,11 +72,12 @@ public class PlayerLayout extends FrameLayout//ViewGroup
 	{
 		mHeaderView			= findViewById(R.id.fragment_youtube_player);
 		mDescriptionView	= findViewById(R.id.descriptionPanel);
-
 	}
 
 	public void maximize()
 	{
+		mHeaderView.setVisibility(View.VISIBLE);
+		mHeaderView.setAlpha(1);
 		smoothSlideTo(0f);
 	}
 
@@ -93,7 +94,7 @@ public class PlayerLayout extends FrameLayout//ViewGroup
 
 		int y = (int) (topBound + slideOffset * mDragRangeY);
 		int x = (int) (leftBound + slideOffset * mDragRangeX);
-		if (mDragHelper.smoothSlideViewTo(mHeaderView, mHeaderView.getLeft(), y))
+		if (mDragHelper.smoothSlideViewTo(mHeaderView,x, y))
 		{
 			ViewCompat.postInvalidateOnAnimation(this);
 			return true;
@@ -119,57 +120,8 @@ public class PlayerLayout extends FrameLayout//ViewGroup
 		final float y = ev.getY();
 		boolean interceptTap = mDragHelper.isViewUnder(mHeaderView, (int) x, (int) y);
 		boolean shouldIntercept	= mDragHelper.shouldInterceptTouchEvent(ev);
-		return  shouldIntercept;
-		/*
-		final int action = MotionEventCompat.getActionMasked(ev);
-		Log.d(TAG,"onInterceptTouchEvent, action = "+action );
+		return  shouldIntercept && mHeaderView.getVisibility() == View.VISIBLE;
 
-		if (( action != MotionEvent.ACTION_DOWN))
-		{
-			mDragHelper.cancel();
-			return super.onInterceptTouchEvent(ev);
-		}
-
-		if (action == MotionEvent.ACTION_CANCEL || action == MotionEvent.ACTION_UP)
-		{
-			mDragHelper.cancel();
-			return false;
-		}
-
-		final float x = ev.getX();
-		final float y = ev.getY();
-		boolean interceptTap = false;
-		Log.d(TAG,"onInterceptTouchEvent, isViewUnder = "+mDragHelper.isViewUnder(mHeaderView, (int) x, (int) y) );
-
-		switch (action)
-		{
-			case MotionEvent.ACTION_DOWN:
-			{
-				mInitialMotionX = x;
-				mInitialMotionY = y;
-				interceptTap = mDragHelper.isViewUnder(mHeaderView, (int) x, (int) y);
-				break;
-			}
-
-			case MotionEvent.ACTION_MOVE:
-			{
-				Log.d(TAG,"onInterceptTouchEvent, action = MotionEvent.ACTION_MOVE" );
-				final float adx = Math.abs(x - mInitialMotionX);
-				final float ady = Math.abs(y - mInitialMotionY);
-				final int slop = mDragHelper.getTouchSlop();
-                //useless
-				if (ady > slop && adx > ady)
-				{
-					Log.d(TAG,"onInterceptTouchEvent, return false on move" );
-					mDragHelper.cancel();
-					return false;
-				}
-			}
-		}
-
-		Log.d(TAG,"onInterceptTouchEvent, values="+mDragHelper.shouldInterceptTouchEvent(ev) +", "+interceptTap );
-		return mDragHelper.shouldInterceptTouchEvent(ev) || interceptTap;
-		*/
 	}
 
 	@Override
@@ -248,7 +200,7 @@ public class PlayerLayout extends FrameLayout//ViewGroup
 	@Override
 	protected void onLayout(boolean changed, int l, int t, int r, int b)
 	{
-		mDragRangeY = getHeight() - (mLastHeight-mLastHeight/2);//mHeaderView.getHeight();
+		mDragRangeY = getHeight() - (mLastHeight-mLastHeight/2);
 
 		float headerLeft	= 0;
 
@@ -258,11 +210,16 @@ public class PlayerLayout extends FrameLayout//ViewGroup
 		}
 		mDragRangeX		= getWidth() - (mLastWidth / 2);
 
-		Log.d(TAG,"onLayout headerLeft()="+headerLeft+", l="+l+", t="+t+ ", r=" + r + ", b=" + b);
+		//mHeaderView.layout(
+		//		(int) headerLeft,
+		//		mTop,
+		//		(int) headerLeft + mHeaderView.getMeasuredWidth(),
+		//		mTop + mHeaderView.getMeasuredHeight());
+
 		mHeaderView.layout(
-				(int) headerLeft,
+				mLeft,
 				mTop,
-				(int) headerLeft + mHeaderView.getMeasuredWidth(),
+				mLeft + mHeaderView.getMeasuredWidth(),
 				mTop + mHeaderView.getMeasuredHeight());
 
 		mDescriptionView.layout(
@@ -303,7 +260,11 @@ public class PlayerLayout extends FrameLayout//ViewGroup
 						// наверху
 						mYoutubePlayer.setPlayerStyle(YouTubePlayer.PlayerStyle.DEFAULT);
 					}
-
+					if(mDragOffsetY == 1.0 && mDragOffsetX == 0.0)
+					{
+						mHeaderView.setVisibility(View.GONE);
+						mYoutubePlayer.pause();
+					}
 					Log.d(TAG,"STATE_IDLE mDragOffsetX="+mDragOffsetX+", mDragOffsetY="+mDragOffsetY);
 					break;
 
@@ -326,25 +287,20 @@ public class PlayerLayout extends FrameLayout//ViewGroup
 			mTop	= top;
 			mLeft	= left;
 			mDragOffsetY		= (float) top / mDragRangeY;
-			if (mDragRangeX != 0.0) mDragOffsetX		= (float) left / mDragRangeX;
+			if (mDragRangeX != 0.0) mDragOffsetX		= (float) left / (float)mDragRangeX;
 			float multFactor	= 1.0f - mDragOffsetY / 2.0f;
 
-
-
-			//mHeaderView.setPivotX(mLastWidth);
-			//mHeaderView.setPivotY(mLastHeight);
-			//mHeaderView.setScaleX(multFactor);
-			//mHeaderView.setScaleY(multFactor);
-
-			Log.d(TAG, "onPositionChanged x=" + left + ", y=" + top+ ", dx="+dx+", dy="+dy);
-			// изменение размеров
 
 			ViewGroup.LayoutParams param = mHeaderView.getLayoutParams();
 			param.height	= (int)(mLastHeight	* multFactor);
 			param.width		= (int)(mLastWidth	* multFactor);
 			mHeaderView.setLayoutParams(param);
-			mHeaderView.setLeft(mLeft);
 
+			if(mDragOffsetY == 1.0)
+			{
+				//mHeaderView.setAlpha(0.8f);
+				//Log.d(TAG, "onViewPositionChanged setAlpha ="+mDragOffsetX);
+			}
 			// скрытие панели с описанием
 			mDescriptionView.setAlpha(1 - mDragOffsetY);
 			requestLayout();
@@ -361,7 +317,13 @@ public class PlayerLayout extends FrameLayout//ViewGroup
 				top		+= mDragRangeY;
 				left	+= mDragRangeX;
 			}
-			mDragHelper.settleCapturedViewAt(/*releasedChild.getLeft()*/left, top);
+			if( (xvel < 0 && mDragOffsetY == 1.0) || (xvel == 0 && mDragOffsetX > 0.5f && mDragOffsetY == 1.0))
+			{
+				// скрыть компонент и поставить на паузу
+				left = 0;
+			}
+			Log.d(TAG," x="+xvel+", y="+yvel);
+			mDragHelper.settleCapturedViewAt(left, top);
 			invalidate();
 		}
 

@@ -194,7 +194,7 @@ public class VideoListActivityFragment extends Fragment implements YouTubePlayer
 	{
 		mIsProgressBarVisible	= true;
 		mListView.setAlpha(1f);
-		mProgressBar.setAlpha(0f);
+		mProgressBar.setAlpha(1f);
 		mListView.setVisibility(View.GONE);
 		mProgressBar.setVisibility(View.VISIBLE);
 	}

@@ -33,7 +33,7 @@
             android:id="@+id/video_list_progress"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:visibility="gone"/>
+            />
 
         <!-- список видео -->
 

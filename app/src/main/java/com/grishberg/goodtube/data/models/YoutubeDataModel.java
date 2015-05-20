@@ -199,7 +199,7 @@ public class YoutubeDataModel
 	{
 		try
 		{
-			YouTube.Videos.List search	= mYoutube.videos().list("id,snippet,contentDetails");
+			YouTube.Videos.List search	= mYoutube.videos().list("id,snippet");
 			search.setKey(YOUTUBE_API_KEY);
 			search.setRegionCode(LOCALE_RU);
 			search.setChart(CHART_MOST_POPULAR);
@@ -268,7 +268,7 @@ public class YoutubeDataModel
 		{
 			try
 			{
-				TimeUnit.SECONDS.sleep(1);
+				//TimeUnit.SECONDS.sleep(1);
 			}
 			catch (Exception e)
 			{
