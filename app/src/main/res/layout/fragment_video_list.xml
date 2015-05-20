@@ -59,8 +59,7 @@
             android:id="@+id/fragment_youtube_player"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="right"
-            android:background="#ff000000">
+            android:layout_gravity="right">
 
         </FrameLayout>
 
