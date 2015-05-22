@@ -4,10 +4,12 @@ import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.support.v4.app.Fragment;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewOutlineProvider;
 import android.view.inputmethod.EditorInfo;
 import android.widget.AbsListView;
 import android.widget.AdapterView;
@@ -15,17 +17,18 @@ import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
+import com.github.pedrovgs.DraggableListener;
+import com.github.pedrovgs.DraggablePanel;
 import com.google.android.youtube.player.YouTubeInitializationResult;
 import com.google.android.youtube.player.YouTubePlayer;
+import com.google.android.youtube.player.YouTubePlayerFragment;
 import com.google.android.youtube.player.YouTubePlayerSupportFragment;
 import com.grishberg.goodtube.R;
 import com.grishberg.goodtube.data.adapters.VideoListAdapter;
 import com.grishberg.goodtube.data.containers.ResultPageContainer;
 import com.grishberg.goodtube.data.containers.VideoContainer;
 import com.grishberg.goodtube.data.models.YoutubeDataModel;
-import com.grishberg.goodtube.gui.layout.PlayerLayout;
 import com.grishberg.goodtube.gui.listeners.GetVideoListListener;
 import com.grishberg.goodtube.gui.listeners.InfinityScrollListener;
 
@@ -36,60 +39,129 @@ import java.util.List;
 /**
  * A placeholder fragment containing a simple view.
  */
-public class VideoListActivityFragment extends Fragment implements YouTubePlayer.OnInitializedListener
+public class VideoListActivityFragment extends Fragment
 {
-	public static final String		TAG				= "YoutubeApp";
+	public static final String		TAG						= "YoutubeApp";
+	public static final String		PLAYER_PLAY_ENABLED		= "playerPlayEnabled";
+	public static final String		PLAYER_PLAY_OFFSET		= "playerPlayOffset";
+	public static final String		MOSTPOPULAR_MODE_STATUS	= "mostpopularModeStatus";
+	public static final String		PLAYER_FULLSCREEN_STATE	= "playerFullscreenState";
+	public static final String		PLAYER_VIDEO_ID			= "playerVideoId";
+	public static final String		SEARCH_KEYWORD			= "searchKeyword";
+
+
+
 	public static final long		ITEMS_PER_PAGE	= 10;
+
+	DraggablePanel mDraggablePanel;
 	private ListView 				mListView;
+
 	private List<VideoContainer> 	mVideoList;
 	private EditText				mSearchEdit;
 
-	private TextView				mDescriptionTextView;
-	private TextView				mDurationTextView;
-	private TextView				mViewCountTextView;
 
-
-	private VideoListAdapter 		mVideoListAdapter;
-	private YoutubeDataModel 		mDataModel;
-	private String					mNextPageToken;
-	private String					mSearchKeyword;
-	private boolean					getMostPopularMode;
-	private ProgressBar				mProgressBar;
-	private int 					mShortAnimationDuration;
-	private boolean					mIsProgressBarVisible;
-	private YouTubePlayerSupportFragment	mYoutubePlayerFragment;
-	private YouTubePlayer 			mPlayer;
-	private PlayerLayout 			mYoutubeLayout;
+	private VideoListAdapter 				mVideoListAdapter;
+	private YoutubeDataModel 				mDataModel;
+	private String							mNextPageToken;
+	private String							mSearchKeyword;
+	private boolean							getMostPopularMode;
+	private ProgressBar						mProgressBar;
+	private int 							mShortAnimationDuration;
+	private boolean							mIsProgressBarVisible;
+	private VideoDescriptionFragment		mVideoDescriptionFragment;
+//	private YouTubePlayerFragment			mYoutubeFragment;
+	private YouTubePlayerSupportFragment	mYoutubeFragment;
+	private YouTubePlayer 					mYoutubePlayer;
+	private String							mCurrentVideoId;
+	private int playOffset				= 0;
+	private int fullscreenState			= 0;
+	private boolean mPlayerPlayModeEnabled;
+	private boolean mFullscreenStatus;
+	//private PlayerLayout 			mYoutubeLayout;
 	public VideoListActivityFragment()
 	{
 	}
 
 	@Override
-	public View onCreateView(LayoutInflater inflater, ViewGroup container,
-							 Bundle savedInstanceState)
+	public void onActivityCreated(Bundle savedInstanceState)
 	{
-		View view	= inflater.inflate(R.layout.fragment_video_list, container, false);
+		super.onActivityCreated(savedInstanceState);
+		mSearchKeyword		= "";
+		// перемещаемая панель
+		mDraggablePanel		= (DraggablePanel)  getView().findViewById(R.id.draggable_panel);
+		mProgressBar		= (ProgressBar) getView().findViewById(R.id.video_list_progress);
+		mListView			= (ListView) getView().findViewById(R.id.video_list_view);
+		mSearchEdit			= (EditText) getView().findViewById(R.id.searchTextEdit);
 
-		// элементы управления детального просмотра видео
-		mYoutubeLayout			= (PlayerLayout) view.findViewById(R.id.dragLayout);
-
-		mProgressBar	= (ProgressBar) view.findViewById(R.id.video_list_progress);
-		mListView		= (ListView) view.findViewById(R.id.video_list_view);
-		//mListView.setEmptyView(mProgressBar);
-		mSearchEdit		= (EditText) view.findViewById(R.id.searchTextEdit);
-
-		mDescriptionTextView	= (TextView) view.findViewById(R.id.tvDescription);
-		mDurationTextView		= (TextView) view.findViewById(R.id.tvDuraion);
-		mViewCountTextView		= (TextView) view.findViewById(R.id.tvViewCount);
-
-		mDataModel		= new YoutubeDataModel(getActivity());
+		mDataModel			= new YoutubeDataModel(getActivity());
 
 		getMostPopularMode	= true;
 		mVideoList			= new ArrayList<VideoContainer>();
 		mVideoListAdapter	= new VideoListAdapter(getActivity(), mVideoList);
+
+		// настройка анимации перехода из прогресс бара на список видео
+		mShortAnimationDuration = getResources().getInteger(
+				android.R.integer.config_mediumAnimTime);
+
+		if (savedInstanceState != null)
+		{
+			mPlayerPlayModeEnabled	= savedInstanceState.getBoolean(PLAYER_PLAY_ENABLED);
+			getMostPopularMode		= savedInstanceState.getBoolean(MOSTPOPULAR_MODE_STATUS);
+			mSearchKeyword			= savedInstanceState.getString(SEARCH_KEYWORD);
+			if(mPlayerPlayModeEnabled)
+			{
+				playOffset 			= savedInstanceState.getInt(PLAYER_PLAY_OFFSET);
+				fullscreenState		= savedInstanceState.getInt(PLAYER_FULLSCREEN_STATE);
+				mCurrentVideoId		= savedInstanceState.getString(PLAYER_VIDEO_ID);
+			}
+		}
+		else
+		{
+			Log.d(TAG,"OnCreateView->SavedInstanceState null");
+		}
+
+		initiliazeVideListView();
+		initiliazeSearchEdit();
+		initiliazeYoutubeFragment();
+		initializeDraggablePanel();
+
+		mDraggablePanel.setVisibility(View.GONE);
+
+		showProgressBar();
+
+		getNextPage();
+	}
+
+	@Override
+	public void onSaveInstanceState(Bundle outState)
+	{
+		// Save the values you need from your textview into "outState"-object
+		super.onSaveInstanceState(outState);
+		outState.putBoolean(PLAYER_PLAY_ENABLED, mYoutubePlayer.isPlaying());
+		if(mYoutubePlayer.isPlaying())
+		{
+			outState.putInt(PLAYER_PLAY_OFFSET, mYoutubePlayer.getCurrentTimeMillis());
+			outState.putInt(PLAYER_FULLSCREEN_STATE,mYoutubePlayer.getFullscreenControlFlags());
+			outState.putString(PLAYER_VIDEO_ID, mCurrentVideoId);
+		}
+		outState.putBoolean(MOSTPOPULAR_MODE_STATUS, getMostPopularMode);
+		outState.putString(SEARCH_KEYWORD, mSearchKeyword);
+
+	}
+
+
+	@Override
+	public View onCreateView(LayoutInflater inflater, ViewGroup container,
+							 Bundle savedInstanceState)
+	{
+		return inflater.inflate(R.layout.fragment_video_list, container, false);
+
+	}
+
+	// инициализация списка видео
+	private void initiliazeVideListView()
+	{
 		mListView.setAdapter(mVideoListAdapter);
-
-
 
 		//----------------- реализация inifinite scroll ------------------------
 		mListView.setOnScrollListener(new InfinityScrollListener(ITEMS_PER_PAGE)
@@ -103,6 +175,45 @@ public class VideoListActivityFragment extends Fragment implements YouTubePlayer
 			}
 		});
 
+		// обработчик нажатия на элемент ListView
+		mListView.setOnItemClickListener(new AdapterView.OnItemClickListener()
+		{
+			@Override
+			public void onItemClick(AdapterView<?> adapterView, View view, int i, long l)
+			{
+				if (mDraggablePanel.getVisibility() != View.VISIBLE)
+					mDraggablePanel.setVisibility(View.VISIBLE);
+				VideoContainer item = (VideoContainer) mListView.getAdapter().getItem(i);
+				mCurrentVideoId = item.getId();
+				mDataModel.getVideoInfo(item.getId(), new GetVideoListListener()
+				{
+					@Override
+					public void onResult(ResultPageContainer result)
+					{
+						if (result == null) return;
+						if (mVideoDescriptionFragment != null)
+						{
+							mVideoDescriptionFragment.setAdditionalData(result.getItems().get(0));
+						}
+					}
+				});
+				if (mYoutubePlayer != null)
+				{
+					mYoutubePlayer.loadVideo(item.getId());
+				}
+				if (mVideoDescriptionFragment != null)
+				{
+					mVideoDescriptionFragment.setMainData(item);
+				}
+
+				mDraggablePanel.maximize();
+			}
+		});
+	}
+
+	// инициализация поля-ввода для поиска
+	private void initiliazeSearchEdit()
+	{
 		mSearchEdit.setOnEditorActionListener(new TextView.OnEditorActionListener()
 		{
 			@Override
@@ -134,60 +245,96 @@ public class VideoListActivityFragment extends Fragment implements YouTubePlayer
 				}
 			}
 		});
-
-		// настройка анимации перехода
-		mShortAnimationDuration = getResources().getInteger(
-				android.R.integer.config_shortAnimTime);
-
-		setupYoutubeFragment();
-
-		showProgressBar();
-
-		getNextPage();
-
-
-		// обработчик нажатия на элемент ListView
-		mListView.setOnItemClickListener(new AdapterView.OnItemClickListener()
-		{
-			@Override
-			public void onItemClick(AdapterView<?> adapterView, View view, int i, long l)
-			{
-				VideoContainer item = (VideoContainer) mListView.getAdapter().getItem(i);
-				mDataModel.getVideoInfo(item.getId(), new GetVideoListListener()
-				{
-					@Override
-					public void onResult(ResultPageContainer result)
-					{
-						if (result == null) return;
-						mDurationTextView.setText("продолжительность: " + result.getItems().get(0).getDuration());
-						mViewCountTextView.setText("количество просмотров: " + result.getItems().get(0).getViewCount());
-					}
-				});
-				mPlayer.loadVideo(item.getId());
-				mPlayer.play();
-				mDescriptionTextView.setText(item.getTitle());
-				mDurationTextView.setText("");
-				mViewCountTextView.setText("");
-
-
-
-				mYoutubeLayout.setVisibility(View.VISIBLE);
-				mYoutubeLayout.maximize();
-			}
-		});
-		mYoutubeLayout.minimize();
-		mYoutubeLayout.setVisibility(View.GONE);
-		return view;
 	}
 
 	// инициализация плеера
-	private void setupYoutubeFragment()
+	private void initiliazeYoutubeFragment()
 	{
 
-		mYoutubePlayerFragment = YouTubePlayerSupportFragment.newInstance();
-		mYoutubePlayerFragment.initialize(YoutubeDataModel.YOUTUBE_API_KEY, this);
-		getChildFragmentManager().beginTransaction().replace(R.id.fragment_youtube_player, mYoutubePlayerFragment).commit();
+		mYoutubeFragment = YouTubePlayerSupportFragment.newInstance();
+		mYoutubeFragment.initialize(YoutubeDataModel.YOUTUBE_API_KEY, new YouTubePlayer.OnInitializedListener()
+		{
 
+			@Override
+			public void onInitializationSuccess(YouTubePlayer.Provider provider,
+												final YouTubePlayer player, boolean wasRestored)
+			{
+				if (!wasRestored)
+				{
+					mYoutubePlayer = player;
+					mYoutubePlayer.setShowFullscreenButton(false);
+					mYoutubePlayer.setPlayerStateChangeListener(new YouTubePlayer.PlayerStateChangeListener()
+					{
+						@Override
+						public void onLoading()
+						{
+
+						}
+
+						@Override
+						public void onLoaded(String s)
+						{
+
+						}
+
+						@Override
+						public void onAdStarted()
+						{
+
+						}
+
+						@Override
+						public void onVideoStarted()
+						{
+
+						}
+
+						@Override
+						public void onVideoEnded()
+						{
+							mPlayerPlayModeEnabled = false;
+						}
+
+						@Override
+						public void onError(YouTubePlayer.ErrorReason errorReason)
+						{
+							mYoutubePlayer.play();
+							Log.d(TAG, "on error "+errorReason.toString());
+						}
+					});
+				}
+				if (mPlayerPlayModeEnabled)
+				{
+					mYoutubePlayer.loadVideo(mCurrentVideoId);
+					mYoutubePlayer.seekToMillis(playOffset);
+					mYoutubePlayer.setFullscreen(mFullscreenStatus);
+				}
+			}
+
+			@Override
+			public void onInitializationFailure(YouTubePlayer.Provider provider,
+												YouTubeInitializationResult error)
+			{
+			}
+		});
+
+	}
+
+	private void initializeDraggablePanel()
+	{
+		mDraggablePanel.setXScaleFactor(2.5f);
+		mDraggablePanel.setYScaleFactor(3f);
+		mDraggablePanel.setTopFragmentMarginRight(10);
+		mDraggablePanel.setTopFragmentMarginBottom(10);
+		mDraggablePanel.setFragmentManager(getActivity().getSupportFragmentManager());
+		mDraggablePanel.setTopFragment(mYoutubeFragment);
+		mDraggablePanel.setTopViewResize(true);
+		mDraggablePanel.setEnableHorizontalAlphaEffect(false);
+		mVideoDescriptionFragment	= new VideoDescriptionFragment();
+
+		mDraggablePanel.setBottomFragment(mVideoDescriptionFragment);
+		hookDraggableViewListener();
+		mDraggablePanel.initializeView();
 	}
 
 	public void showProgressBar()
@@ -220,7 +367,7 @@ public class VideoListActivityFragment extends Fragment implements YouTubePlayer
 					public void onAnimationEnd(Animator animation)
 					{
 						mProgressBar.setVisibility(View.GONE);
-						mIsProgressBarVisible	= false;
+						mIsProgressBarVisible = false;
 					}
 				});
 	}
@@ -262,30 +409,66 @@ public class VideoListActivityFragment extends Fragment implements YouTubePlayer
 		mVideoListAdapter.notifyDataSetChanged();
 	}
 
-	//-------------------- инициализация Youtube fragment
-	@Override
-	public void onInitializationSuccess(YouTubePlayer.Provider provider, YouTubePlayer player,
-										boolean wasRestored)
+
+	//------------ Draggeble panel --------------------------------------------------------
+
+	/*
+	 * Hook DraggableListener to draggableView to pause or resume VideoView.
+	 */
+	private void hookDraggableViewListener()
 	{
-		mPlayer	= player;
-		mYoutubeLayout.setYoutubePlayer(player);
-		if (!wasRestored)
+		mDraggablePanel.setDraggableListener(new DraggableListener()
 		{
-			//player.cueVideo("nCgQDjiotG0");
-			//player.play();
-		}
+			@Override
+			public void onMaximized()
+			{
+				if(!mYoutubePlayer.isPlaying())
+				{
+					startVideo();
+				}
+				if (mYoutubePlayer != null)
+					mYoutubePlayer.setPlayerStyle(YouTubePlayer.PlayerStyle.DEFAULT);
+			}
+
+			//Empty
+			@Override
+			public void onMinimized()
+			{
+				if (mYoutubePlayer != null)
+					mYoutubePlayer.setPlayerStyle(YouTubePlayer.PlayerStyle.CHROMELESS);
+			}
+
+			@Override
+			public void onClosedToLeft()
+			{
+				pauseVideo();
+			}
+
+			@Override
+			public void onClosedToRight()
+			{
+				pauseVideo();
+			}
+		});
 	}
 
-	@Override
-	public void onInitializationFailure(YouTubePlayer.Provider provider,
-										YouTubeInitializationResult result)
+	/**
+	 * Pause the VideoView content.
+	 */
+	private void pauseVideo()
 	{
-		if (result.isUserRecoverableError()) {
-			result.getErrorDialog(this.getActivity(),1).show();
-		} else {
-			Toast.makeText(this.getActivity(),
-					"YouTubePlayer.onInitializationFailure(): " + result.toString(),
-					Toast.LENGTH_LONG).show();
+		if(mYoutubePlayer != null && mYoutubePlayer.isPlaying())
+			mYoutubePlayer.pause();
+	}
+
+	/**
+	 * Resume the VideoView content.
+	 */
+	private void startVideo()
+	{
+		if(mYoutubePlayer != null && !mYoutubePlayer.isPlaying())
+		{
+			mYoutubePlayer.play();
 		}
 	}
 

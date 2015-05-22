@@ -1,0 +1,54 @@
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+             xmlns:tools="http://schemas.android.com/tools"
+             android:layout_width="match_parent"
+             android:layout_height="match_parent"
+             tools:context="com.grishberg.goodtube.gui.fragment.VideoDescriptionFragment">
+
+    <!-- Описание -->
+    <LinearLayout
+        android:id="@+id/descriptionPanel"
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@android:color/white"
+        >
+
+        <TextView
+            android:id="@+id/tvDescription"
+            android:tag="desc"
+            android:textSize="20sp"
+            android:gravity="top"
+            android:text="info about video"
+            android:textColor="@android:color/black"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@android:color/white"
+            android:layout_margin="8dp"/>
+
+        <TextView
+            android:id="@+id/tvViewCount"
+            android:tag="views"
+            android:textSize="16sp"
+            android:gravity="top"
+            android:text="количество просмотров"
+            android:textColor="@android:color/black"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@android:color/white"
+            android:layout_margin="8dp"/>
+
+        <TextView
+            android:id="@+id/tvDuraion"
+            android:tag="views"
+            android:textSize="16sp"
+            android:gravity="top"
+            android:text="продолжительность"
+            android:textColor="@android:color/black"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@android:color/white"
+            android:layout_margin="8dp"/>
+
+    </LinearLayout>
+
+</FrameLayout>

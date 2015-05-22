@@ -1,6 +1,7 @@
 <FrameLayout
 
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:draggable_panel="http://schemas.android.com/apk/lib"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
     <LinearLayout
@@ -31,8 +32,9 @@
         <!-- прогресс загрузки -->
         <ProgressBar
             android:id="@+id/video_list_progress"
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="match_parent"
+            android:layout_gravity="center"
             />
 
         <!-- список видео -->
@@ -47,70 +49,15 @@
 
     </LinearLayout>
 
-    <!-- Layout всплывающего плеера -->
-    <com.grishberg.goodtube.gui.layout.PlayerLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:id="@+id/dragLayout"
-        android:orientation="vertical">
-
-        <!-- Проигрыватель -->
-        <FrameLayout
-            android:id="@+id/fragment_youtube_player"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="right">
-
-        </FrameLayout>
-
-        <!-- Описание -->
-        <LinearLayout
-            android:id="@+id/descriptionPanel"
-            android:orientation="vertical"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:background="@android:color/white"
-            >
-
-            <TextView
-                android:id="@+id/tvDescription"
-                android:tag="desc"
-                android:textSize="20sp"
-                android:gravity="top"
-                android:text="info about video"
-                android:textColor="@android:color/black"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="@android:color/white"
-                android:layout_margin="8dp"/>
-
-            <TextView
-                android:id="@+id/tvViewCount"
-                android:tag="views"
-                android:textSize="16sp"
-                android:gravity="top"
-                android:text="количество просмотров"
-                android:textColor="@android:color/black"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="@android:color/white"
-                android:layout_margin="8dp"/>
-
-            <TextView
-                android:id="@+id/tvDuraion"
-                android:tag="views"
-                android:textSize="16sp"
-                android:gravity="top"
-                android:text="продолжительность"
-                android:textColor="@android:color/black"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="@android:color/white"
-                android:layout_margin="8dp"/>
-
-        </LinearLayout>
-
-    </com.grishberg.goodtube.gui.layout.PlayerLayout>
-
+    <!-- Layout всплывающей панели -->
+    <com.github.pedrovgs.DraggablePanel
+        android:id="@+id/draggable_panel"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        draggable_panel:x_scale_factor="2.5"
+        draggable_panel:y_scale_factor="2.5"
+        draggable_panel:top_fragment_margin_right="10dp"
+        draggable_panel:top_fragment_margin_bottom="10dp"
+        draggable_panel:enable_horizontal_alpha_effect="false"/>
 
 </FrameLayout>
