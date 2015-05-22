@@ -4,6 +4,7 @@ import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.support.v4.app.Fragment;
 import android.os.Bundle;
+import android.support.v4.app.FragmentTransaction;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -20,10 +21,13 @@ import android.widget.TextView;
 
 import com.github.pedrovgs.DraggableListener;
 import com.github.pedrovgs.DraggablePanel;
+import com.github.pedrovgs.DraggableView;
 import com.google.android.youtube.player.YouTubeInitializationResult;
 import com.google.android.youtube.player.YouTubePlayer;
+//import com.google.android.youtube.player.YouTubePlayerFragment;
 import com.google.android.youtube.player.YouTubePlayerFragment;
 import com.google.android.youtube.player.YouTubePlayerSupportFragment;
+import com.google.android.youtube.player.YouTubePlayerView;
 import com.grishberg.goodtube.R;
 import com.grishberg.goodtube.data.adapters.VideoListAdapter;
 import com.grishberg.goodtube.data.containers.ResultPageContainer;
@@ -53,7 +57,7 @@ public class VideoListActivityFragment extends Fragment
 
 	public static final long		ITEMS_PER_PAGE	= 10;
 
-	DraggablePanel mDraggablePanel;
+	DraggableView					mDraggableView;
 	private ListView 				mListView;
 
 	private List<VideoContainer> 	mVideoList;
@@ -70,7 +74,8 @@ public class VideoListActivityFragment extends Fragment
 	private boolean							mIsProgressBarVisible;
 	private VideoDescriptionFragment		mVideoDescriptionFragment;
 //	private YouTubePlayerFragment			mYoutubeFragment;
-	private YouTubePlayerSupportFragment	mYoutubeFragment;
+	private YouTubePlayerView				mYoutubeView;
+	//private YouTubePlayerSupportFragment	mYoutubeFragment;
 	private YouTubePlayer 					mYoutubePlayer;
 	private String							mCurrentVideoId;
 	private int playOffset				= 0;
@@ -88,7 +93,9 @@ public class VideoListActivityFragment extends Fragment
 		super.onActivityCreated(savedInstanceState);
 		mSearchKeyword		= "";
 		// перемещаемая панель
-		mDraggablePanel		= (DraggablePanel)  getView().findViewById(R.id.draggable_panel);
+		mDraggableView		= (DraggableView)  getView().findViewById(R.id.draggable_view);
+		mYoutubeView		= (YouTubePlayerView) getView().findViewById(R.id.youtube_view);
+
 		mProgressBar		= (ProgressBar) getView().findViewById(R.id.video_list_progress);
 		mListView			= (ListView) getView().findViewById(R.id.video_list_view);
 		mSearchEdit			= (EditText) getView().findViewById(R.id.searchTextEdit);
@@ -125,7 +132,7 @@ public class VideoListActivityFragment extends Fragment
 		initiliazeYoutubeFragment();
 		initializeDraggablePanel();
 
-		mDraggablePanel.setVisibility(View.GONE);
+		mDraggableView.setVisibility(View.GONE);
 
 		showProgressBar();
 
@@ -181,8 +188,8 @@ public class VideoListActivityFragment extends Fragment
 			@Override
 			public void onItemClick(AdapterView<?> adapterView, View view, int i, long l)
 			{
-				if (mDraggablePanel.getVisibility() != View.VISIBLE)
-					mDraggablePanel.setVisibility(View.VISIBLE);
+				if (mDraggableView.getVisibility() != View.VISIBLE)
+					mDraggableView.setVisibility(View.VISIBLE);
 				VideoContainer item = (VideoContainer) mListView.getAdapter().getItem(i);
 				mCurrentVideoId = item.getId();
 				mDataModel.getVideoInfo(item.getId(), new GetVideoListListener()
@@ -206,7 +213,7 @@ public class VideoListActivityFragment extends Fragment
 					mVideoDescriptionFragment.setMainData(item);
 				}
 
-				mDraggablePanel.maximize();
+				mDraggableView.maximize();
 			}
 		});
 	}
@@ -251,8 +258,11 @@ public class VideoListActivityFragment extends Fragment
 	private void initiliazeYoutubeFragment()
 	{
 
-		mYoutubeFragment = YouTubePlayerSupportFragment.newInstance();
-		mYoutubeFragment.initialize(YoutubeDataModel.YOUTUBE_API_KEY, new YouTubePlayer.OnInitializedListener()
+		//mYoutubeFragment = YouTubePlayerSupportFragment.newInstance();
+		//mYoutubeFragment = YouTubePlayerSupportFragment.newInstance();
+
+		mYoutubeView.initialize(YoutubeDataModel.YOUTUBE_API_KEY, new YouTubePlayer.OnInitializedListener()
+				//mYoutubeFragment.initialize(YoutubeDataModel.YOUTUBE_API_KEY, new YouTubePlayer.OnInitializedListener()
 		{
 
 			@Override
@@ -317,24 +327,57 @@ public class VideoListActivityFragment extends Fragment
 			{
 			}
 		});
+		//getChildFragmentManager().beginTransaction().replace(R.id.youtube_view, mYoutubeFragment).commit();
 
+//		FragmentTransaction transaction = getFragmentManager().beginTransaction();
+		// Replace whatever is in the fragment_container view with this fragment,
+		// and add the transaction to the back stack
+//		transaction.replace(R.id.top_panel, mYoutubeFragment);
+//		transaction.addToBackStack(null);	// запрет отрабатывать кнопку назад
+
+		// Commit the transaction
+//		transaction.commit();
 	}
 
 	private void initializeDraggablePanel()
 	{
-		mDraggablePanel.setXScaleFactor(2.5f);
-		mDraggablePanel.setYScaleFactor(3f);
-		mDraggablePanel.setTopFragmentMarginRight(10);
-		mDraggablePanel.setTopFragmentMarginBottom(10);
-		mDraggablePanel.setFragmentManager(getActivity().getSupportFragmentManager());
-		mDraggablePanel.setTopFragment(mYoutubeFragment);
-		mDraggablePanel.setTopViewResize(true);
-		mDraggablePanel.setEnableHorizontalAlphaEffect(false);
-		mVideoDescriptionFragment	= new VideoDescriptionFragment();
+		//mDraggableView.setXScaleFactor(2.5f);
+		//mDraggableView.setYScaleFactor(3f);
+		//mDraggableView.setTopFragmentMarginRight(10);
+		//mDraggableView.setTopFragmentMarginBottom(10);
+		//mDraggableView.setFragmentManager(getActivity().getSupportFragmentManager());
+		//mDraggableView.attachTopFragment(mYoutubeFragment);
+		//mDraggableView.setTopViewResize(true);
+/*
+		mVideoDescriptionFragment		= new VideoDescriptionFragment();
+		FragmentTransaction transaction = getFragmentManager().beginTransaction();
+		// Replace whatever is in the fragment_container view with this fragment,
+		// and add the transaction to the back stack
+		transaction.replace(R.id.bottom_panel, mVideoDescriptionFragment);
+		transaction.addToBackStack(null);	// запрет отрабатывать кнопку назад
 
-		mDraggablePanel.setBottomFragment(mVideoDescriptionFragment);
+		// Commit the transaction
+		transaction.commit();
+*/
 		hookDraggableViewListener();
-		mDraggablePanel.initializeView();
+		//mDraggableView.initializeView();
+/*
+		draggableView = (DraggableView) findViewById(R.id.draggable_view);
+		draggableView.setTopViewHeight(topFragmentHeight);
+		draggableView.setFragmentManager(fragmentManager);
+		draggableView.attachTopFragment(topFragment);
+		draggableView.setXTopViewScaleFactor(xScaleFactor);
+		draggableView.setYTopViewScaleFactor(yScaleFactor);
+		draggableView.setTopViewMarginRight(topFragmentMarginRight);
+		draggableView.setTopViewMarginBottom(topFragmentMarginBottom);
+		draggableView.attachBottomFragment(bottomFragment);
+		draggableView.setDraggableListener(draggableListener);
+		draggableView.setHorizontalAlphaEffectEnabled(enableHorizontalAlphaEffect);
+		draggableView.setClickToMaximizeEnabled(enableClickToMaximize);
+		draggableView.setClickToMinimizeEnabled(enableClickToMinimize);
+		draggableView.setTouchEnabled(enableTouchListener);
+		draggableView.setTopViewResize(topViewResize);
+*/
 	}
 
 	public void showProgressBar()
@@ -417,7 +460,7 @@ public class VideoListActivityFragment extends Fragment
 	 */
 	private void hookDraggableViewListener()
 	{
-		mDraggablePanel.setDraggableListener(new DraggableListener()
+		mDraggableView.setDraggableListener(new DraggableListener()
 		{
 			@Override
 			public void onMaximized()
