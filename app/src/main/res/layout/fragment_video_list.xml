@@ -51,87 +51,62 @@
     </LinearLayout>
 
 
-
-    <!-- Layout всплывающей панели -->
-    <com.github.pedrovgs.DraggableView
+    <com.grishberg.goodtube.gui.controller.MyDraggablePanel
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:draggable_view="http://schemas.android.com/apk/res-auto"
         android:id="@+id/draggable_view"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
-        draggable_view:x_scale_factor="2.5"
-        draggable_view:y_scale_factor="2.5"
-        draggable_view:top_fragment_margin_right="4dp"
-        draggable_view:top_fragment_margin_bottom="4dp"
-        draggable_view:top_view_resize="true"
-        draggable_view:enable_horizontal_alpha_effect="false"
         draggable_view:top_view_id="@+id/top_panel"
         draggable_view:bottom_view_id="@+id/bottom_panel"
+        draggable_view:top_view_x_scale_factor="2.5"
+        draggable_view:top_view_y_scale_factor="2.5"
+        draggable_view:top_view_resize="true"
+        draggable_view:enable_minimized_horizontal_alpha_effect="false"
         >
 
-        <LinearLayout
+        <!-- ListView Episodes -->
+        <RelativeLayout
+            android:id="@+id/bottom_panel"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_below="@+id/iv_fan_art"
+            android:background="#ff9461c7"
+            >
+            <ListView
+                android:id="@+id/lv_episodes"
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent"
+                android:layout_alignParentTop="true"
+                />
+        </RelativeLayout>
+
+        <!-- TvShow Fan Art -->
+        <RelativeLayout
             android:id="@+id/top_panel"
-	        android:orientation="vertical"
-            android:layout_width="fill_parent"
-            android:layout_height="fill_parent"
-            android:layout_below="@+id/top_panel"
-            android:minHeight="100dp"
-            android:minWidth="200dp"
-            android:background="#fff67dd0"
-        >
-
-            <com.google.android.youtube.player.YouTubePlayerView
-                android:id="@+id/youtube_view"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"/>
-
-    </LinearLayout>
-
-    <LinearLayout
-        android:id="@+id/bottom_panel"
-        android:orientation="vertical"
-        android:layout_width="fill_parent"
-        android:background="#ff46f6f6"
-        android:layout_height="250dp"
-        android:layout_alignParentTop="true"
-        android:paddingRight="2dp"
-
-        >
-        <TextView
-            android:id="@+id/tvDescription"
-            android:tag="desc"
-            android:textSize="20sp"
-            android:gravity="top"
-            android:text="info about video"
-            android:textColor="@android:color/black"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@android:color/white"
-            android:layout_margin="8dp"/>
+            android:layout_alignParentTop="true"
+            >
 
-        <TextView
-            android:id="@+id/tvViewCount"
-            android:tag="views"
-            android:textSize="16sp"
-            android:gravity="top"
-            android:text="количество просмотров"
-            android:textColor="@android:color/black"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="@android:color/white"
-            android:layout_margin="8dp"/>
+            <LinearLayout
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_alignParentTop="true"
+                android:minHeight="110dp"
+                android:minWidth="200dp"
+                >
+                <FrameLayout
+                    android:id="@+id/youtube_view"
+                    android:layout_width="fill_parent"
+                    android:background="#ff46f6f6"
+                    android:layout_height="wrap_content"
+                    />
+            </LinearLayout>
+        </RelativeLayout>
 
-        <TextView
-            android:id="@+id/tvDuraion"
-            android:tag="views"
-            android:textSize="16sp"
-            android:gravity="top"
-            android:text="продолжительность"
-            android:textColor="@android:color/black"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="@android:color/white"
-            android:layout_margin="8dp"/>
-    </LinearLayout>
+    </com.grishberg.goodtube.gui.controller.MyDraggablePanel>
 
-</com.github.pedrovgs.DraggableView>
 
 </FrameLayout>

@@ -33,6 +33,7 @@ import com.grishberg.goodtube.data.adapters.VideoListAdapter;
 import com.grishberg.goodtube.data.containers.ResultPageContainer;
 import com.grishberg.goodtube.data.containers.VideoContainer;
 import com.grishberg.goodtube.data.models.YoutubeDataModel;
+import com.grishberg.goodtube.gui.controller.MyDraggableView;
 import com.grishberg.goodtube.gui.listeners.GetVideoListListener;
 import com.grishberg.goodtube.gui.listeners.InfinityScrollListener;
 
@@ -57,7 +58,7 @@ public class VideoListActivityFragment extends Fragment
 
 	public static final long		ITEMS_PER_PAGE	= 10;
 
-	DraggableView					mDraggableView;
+	MyDraggableView mDraggableView;
 	private ListView 				mListView;
 
 	private List<VideoContainer> 	mVideoList;
@@ -67,15 +68,17 @@ public class VideoListActivityFragment extends Fragment
 	private VideoListAdapter 				mVideoListAdapter;
 	private YoutubeDataModel 				mDataModel;
 	private String							mNextPageToken;
+	private String							mPrevPageToken;
+
 	private String							mSearchKeyword;
 	private boolean							getMostPopularMode;
 	private ProgressBar						mProgressBar;
 	private int 							mShortAnimationDuration;
 	private boolean							mIsProgressBarVisible;
 	private VideoDescriptionFragment		mVideoDescriptionFragment;
-//	private YouTubePlayerFragment			mYoutubeFragment;
-	private YouTubePlayerView				mYoutubeView;
-	//private YouTubePlayerSupportFragment	mYoutubeFragment;
+	//private YouTubePlayerFragment			mYoutubeFragment;
+	//private YouTubePlayerView				mYoutubeView;
+	private YouTubePlayerSupportFragment	mYoutubeContainer;
 	private YouTubePlayer 					mYoutubePlayer;
 	private String							mCurrentVideoId;
 	private int playOffset				= 0;
@@ -93,8 +96,11 @@ public class VideoListActivityFragment extends Fragment
 		super.onActivityCreated(savedInstanceState);
 		mSearchKeyword		= "";
 		// перемещаемая панель
-		mDraggableView		= (DraggableView)  getView().findViewById(R.id.draggable_view);
-		mYoutubeView		= (YouTubePlayerView) getView().findViewById(R.id.youtube_view);
+		mDraggableView		= (MyDraggableView)  getView().findViewById(R.id.draggable_view);
+		mDraggableView.setTopViewRef(getView().findViewById(R.id.youtube_view));
+		//mDraggableView.setBottomViewRef(getView().findViewById(R.id.bottom_panel));
+
+		//mYoutubeFragment		= (YouTubePlayerView) getView().findViewById(R.id.youtube_view);
 
 		mProgressBar		= (ProgressBar) getView().findViewById(R.id.video_list_progress);
 		mListView			= (ListView) getView().findViewById(R.id.video_list_view);
@@ -132,7 +138,7 @@ public class VideoListActivityFragment extends Fragment
 		initiliazeYoutubeFragment();
 		initializeDraggablePanel();
 
-		mDraggableView.setVisibility(View.GONE);
+		//mDraggableView.setVisibility(View.GONE);
 
 		showProgressBar();
 
@@ -259,9 +265,10 @@ public class VideoListActivityFragment extends Fragment
 	{
 
 		//mYoutubeFragment = YouTubePlayerSupportFragment.newInstance();
-		//mYoutubeFragment = YouTubePlayerSupportFragment.newInstance();
 
-		mYoutubeView.initialize(YoutubeDataModel.YOUTUBE_API_KEY, new YouTubePlayer.OnInitializedListener()
+
+		mYoutubeContainer	= YouTubePlayerSupportFragment.newInstance();
+		mYoutubeContainer.initialize(YoutubeDataModel.YOUTUBE_API_KEY, new YouTubePlayer.OnInitializedListener()
 				//mYoutubeFragment.initialize(YoutubeDataModel.YOUTUBE_API_KEY, new YouTubePlayer.OnInitializedListener()
 		{
 
@@ -309,7 +316,7 @@ public class VideoListActivityFragment extends Fragment
 						public void onError(YouTubePlayer.ErrorReason errorReason)
 						{
 							mYoutubePlayer.play();
-							Log.d(TAG, "on error "+errorReason.toString());
+							Log.d(TAG, "on error " + errorReason.toString());
 						}
 					});
 				}
@@ -327,7 +334,8 @@ public class VideoListActivityFragment extends Fragment
 			{
 			}
 		});
-		//getChildFragmentManager().beginTransaction().replace(R.id.youtube_view, mYoutubeFragment).commit();
+		getChildFragmentManager().beginTransaction().replace(R.id.youtube_view, mYoutubeContainer).commit();
+
 
 //		FragmentTransaction transaction = getFragmentManager().beginTransaction();
 		// Replace whatever is in the fragment_container view with this fragment,
@@ -341,43 +349,10 @@ public class VideoListActivityFragment extends Fragment
 
 	private void initializeDraggablePanel()
 	{
-		//mDraggableView.setXScaleFactor(2.5f);
-		//mDraggableView.setYScaleFactor(3f);
-		//mDraggableView.setTopFragmentMarginRight(10);
-		//mDraggableView.setTopFragmentMarginBottom(10);
-		//mDraggableView.setFragmentManager(getActivity().getSupportFragmentManager());
-		//mDraggableView.attachTopFragment(mYoutubeFragment);
-		//mDraggableView.setTopViewResize(true);
-/*
-		mVideoDescriptionFragment		= new VideoDescriptionFragment();
-		FragmentTransaction transaction = getFragmentManager().beginTransaction();
-		// Replace whatever is in the fragment_container view with this fragment,
-		// and add the transaction to the back stack
-		transaction.replace(R.id.bottom_panel, mVideoDescriptionFragment);
-		transaction.addToBackStack(null);	// запрет отрабатывать кнопку назад
 
-		// Commit the transaction
-		transaction.commit();
-*/
 		hookDraggableViewListener();
-		//mDraggableView.initializeView();
-/*
-		draggableView = (DraggableView) findViewById(R.id.draggable_view);
-		draggableView.setTopViewHeight(topFragmentHeight);
-		draggableView.setFragmentManager(fragmentManager);
-		draggableView.attachTopFragment(topFragment);
-		draggableView.setXTopViewScaleFactor(xScaleFactor);
-		draggableView.setYTopViewScaleFactor(yScaleFactor);
-		draggableView.setTopViewMarginRight(topFragmentMarginRight);
-		draggableView.setTopViewMarginBottom(topFragmentMarginBottom);
-		draggableView.attachBottomFragment(bottomFragment);
-		draggableView.setDraggableListener(draggableListener);
-		draggableView.setHorizontalAlphaEffectEnabled(enableHorizontalAlphaEffect);
-		draggableView.setClickToMaximizeEnabled(enableClickToMaximize);
-		draggableView.setClickToMinimizeEnabled(enableClickToMinimize);
-		draggableView.setTouchEnabled(enableTouchListener);
-		draggableView.setTopViewResize(topViewResize);
-*/
+
+
 	}
 
 	public void showProgressBar()
@@ -418,6 +393,8 @@ public class VideoListActivityFragment extends Fragment
 	// извлечь следующую страницу
 	public void getNextPage()
 	{
+		if (mNextPageToken == null && mPrevPageToken != null) return;
+
 		if (getMostPopularMode)
 		{
 			mDataModel.getMostPopularResult(mNextPageToken, new GetVideoListListener()
@@ -448,6 +425,7 @@ public class VideoListActivityFragment extends Fragment
 		hideProgressBar();
 		if(result == null) return;
 		mNextPageToken	= result.getNextPageToken();
+		mPrevPageToken	= result.getPrevPageToken();
 		mVideoList.addAll(result.getItems());
 		mVideoListAdapter.notifyDataSetChanged();
 	}
@@ -465,7 +443,7 @@ public class VideoListActivityFragment extends Fragment
 			@Override
 			public void onMaximized()
 			{
-				if(!mYoutubePlayer.isPlaying())
+				if(mYoutubePlayer!= null && !mYoutubePlayer.isPlaying())
 				{
 					startVideo();
 				}

@@ -145,7 +145,7 @@ public class YoutubeDataModel
 			}
 			if( items.size() > 0)
 			{
-				return new ResultPageContainer(items, null);
+				return new ResultPageContainer(items, null, null);
 			}
 		}
 		catch (Exception e)
@@ -173,7 +173,7 @@ public class YoutubeDataModel
 			SearchListResponse response	= search.execute();
 			List<SearchResult> results	= response.getItems();
 			String nextPageToken 		= response.getNextPageToken();
-
+			String prevPageToken		= response.getPrevPageToken();
 			List<VideoContainer> items	= new ArrayList<VideoContainer>();
 			for(SearchResult result:results)
 			{
@@ -186,7 +186,7 @@ public class YoutubeDataModel
 
 				items.add(item);
 			}
-			return new ResultPageContainer(items, nextPageToken);
+			return new ResultPageContainer(items, prevPageToken, nextPageToken);
 		}catch(IOException e)
 		{
 			Log.d(TAG, "Could not search: "+e);
@@ -211,6 +211,7 @@ public class YoutubeDataModel
 
 			VideoListResponse response	= search.execute();
 			String nextPageToken		= response.getNextPageToken();
+			String prevPageToken		= response.getPrevPageToken();
 			List<Video> results 		= response.getItems();
 
 			List<VideoContainer> items = new ArrayList<VideoContainer>();
@@ -224,7 +225,7 @@ public class YoutubeDataModel
 				item.setPublishedAt(result.getSnippet().getPublishedAt().getValue());
 				items.add(item);
 			}
-			return new ResultPageContainer(items,nextPageToken) ;
+			return new ResultPageContainer(items, prevPageToken	, nextPageToken) ;
 		}catch(IOException e)
 		{
 			Log.d(TAG, "Could not search: "+e);
@@ -247,11 +248,11 @@ public class YoutubeDataModel
 		protected ResultPageContainer doInBackground(SearchParamers... params)
 		{
 			inputParam			= params.length > 0 ? params[0] : null;
-			String nexPageToken	= inputParam.getNextPageToken();
+			String nextPageToken	= inputParam.getNextPageToken();
 			String keyword		= inputParam.getKeywords();
 
 
-			return search(keyword, nexPageToken);
+			return search(keyword, nextPageToken);
 		}
 
 		protected void onPostExecute(ResultPageContainer result)
@@ -275,10 +276,10 @@ public class YoutubeDataModel
 
 			}
 			inputParam			= params.length > 0 ? params[0] : null;
-			String nexPageToken	= inputParam.getNextPageToken();
+			String nextPageToken	= inputParam.getNextPageToken();
 
 
-			return getMostPopular(nexPageToken);
+			return getMostPopular(nextPageToken);
 		}
 
 		protected void onPostExecute(ResultPageContainer result)
