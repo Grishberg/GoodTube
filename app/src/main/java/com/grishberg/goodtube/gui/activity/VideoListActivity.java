@@ -18,7 +18,7 @@ public class VideoListActivity extends ActionBarActivity
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_video_list);
 	}
-
+/*
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu)
@@ -44,4 +44,5 @@ public class VideoListActivity extends ActionBarActivity
 
 		return super.onOptionsItemSelected(item);
 	}
+	*/
 }

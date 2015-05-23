@@ -79,7 +79,7 @@ public class VideoListActivityFragment extends Fragment
 	private String							mCurrentVideoId;
 
 	private boolean							mGetMostPopularMode;
-	private int playOffset				= 0;
+	private int mPlayOffset				= 0;
 	private int fullscreenState			= 0;
 	private boolean mPlayerPlayModeEnabled;
 	private boolean mFullscreenStatus;
@@ -118,7 +118,7 @@ public class VideoListActivityFragment extends Fragment
 			mSearchKeyword			= savedInstanceState.getString(SEARCH_KEYWORD);
 			if(mPlayerPlayModeEnabled)
 			{
-				playOffset 			= savedInstanceState.getInt(PLAYER_PLAY_OFFSET);
+				mPlayOffset			= savedInstanceState.getInt(PLAYER_PLAY_OFFSET);
 				fullscreenState		= savedInstanceState.getInt(PLAYER_FULLSCREEN_STATE);
 				mCurrentVideoId		= savedInstanceState.getString(PLAYER_VIDEO_ID);
 			}
@@ -278,12 +278,16 @@ public class VideoListActivityFragment extends Fragment
 						public void onLoading()
 						{
 
+							Log.d(TAG,"on loading");
+
 						}
 
 						@Override
 						public void onLoaded(String s)
 						{
-
+							Log.d(TAG, "on loaded " + s);
+							//mYoutubePlayer.seekToMillis(mPlayOffset);
+							//mYoutubePlayer.play();
 						}
 
 						@Override
@@ -302,12 +306,13 @@ public class VideoListActivityFragment extends Fragment
 						public void onVideoEnded()
 						{
 							mPlayerPlayModeEnabled = false;
+
 						}
 
 						@Override
 						public void onError(YouTubePlayer.ErrorReason errorReason)
 						{
-							mYoutubePlayer.play();
+							//mYoutubePlayer.play();
 							Log.d(TAG, "on error " + errorReason.toString());
 						}
 					});
@@ -315,8 +320,9 @@ public class VideoListActivityFragment extends Fragment
 				if (mPlayerPlayModeEnabled)
 				{
 					mYoutubePlayer.loadVideo(mCurrentVideoId);
-					mYoutubePlayer.seekToMillis(playOffset);
-					mYoutubePlayer.setFullscreen(mFullscreenStatus);
+					//mYoutubePlayer.seekToMillis((mPlayOffset/1000)*1000);
+					//mYoutubePlayer.play();
+					//mYoutubePlayer.setFullscreen(mFullscreenStatus);
 				}
 			}
 
@@ -430,7 +436,7 @@ public class VideoListActivityFragment extends Fragment
 			{
 				if(mYoutubePlayer!= null && !mYoutubePlayer.isPlaying())
 				{
-					startVideo();
+					//startVideo();
 				}
 				if (mYoutubePlayer != null)
 					mYoutubePlayer.setPlayerStyle(YouTubePlayer.PlayerStyle.DEFAULT);

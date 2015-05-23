@@ -50,77 +50,26 @@ public class YoutubeDataModel
 	}
 
 	// асинхронный поиск по ключевым словам
-	public void getSearchResult( final String searchKeyword
-			, final String pageToken
-			, final GetVideoListListener resultListener)
+	public void getSearchResult(  String searchKeyword
+			,  String pageToken
+			,  GetVideoListListener resultListener)
 	{
-		SearchVideoTask task = new SearchVideoTask();
-		task.execute(new SearchParamers()
-		{
-			@Override
-			public String getNextPageToken()
-			{
-				return pageToken;
-			}
-
-			@Override
-			public String getKeywords()
-			{
-				return searchKeyword;
-			}
-
-			@Override
-			public void onDone(ResultPageContainer result)
-			{
-				resultListener.onResult(result);
-			}
-		});
+		SearchVideoTask task = new SearchVideoTask(pageToken,searchKeyword,resultListener);
+		task.execute();
 	}
 
 	// асинхронная загрузка популярного видео
-	public void getMostPopularResult(final String pageToken
-			, final GetVideoListListener resultListener)
+	public void getMostPopularResult( String pageToken
+			,  GetVideoListListener resultListener)
 	{
-		PopularVideoTask task = new PopularVideoTask();
-		task.execute(new SearchParamers()
-		{
-			@Override
-			public String getNextPageToken()
-			{
-				return pageToken;
-			}
-
-			@Override
-			public String getKeywords()
-			{
-				return null;
-			}
-
-			@Override
-			public void onDone(ResultPageContainer result)
-			{
-				resultListener.onResult(result);
-			}
-		});
+		PopularVideoTask task = new PopularVideoTask(pageToken,resultListener);
+		task.execute();
 	}
 
-	public void getVideoInfo(final String id, final GetVideoListListener resultListener)
+	public void getVideoInfo( String id, GetVideoListListener resultListener)
 	{
-		VideoInfoTask task	= new VideoInfoTask();
-		task.execute(new InfoParamers()
-		{
-			@Override
-			public String getVideoId()
-			{
-				return id;
-			}
-
-			@Override
-			public void onDone(ResultPageContainer result)
-			{
-				resultListener.onResult(result);
-			}
-		});
+		VideoInfoTask task	= new VideoInfoTask(id,resultListener);
+		task.execute();
 	}
 
 	private ResultPageContainer getVideoInfo(String videoId)
@@ -233,82 +182,104 @@ public class YoutubeDataModel
 		}
 	}
 
-	//
-	interface SearchParamers
-	{
-		public String 	getNextPageToken();
-		public String 	getKeywords();
-		public void 	onDone(ResultPageContainer result);
-	}
 	//---------------------------------------
 	// Асинхронное извлечение результатов поиска
-	private class SearchVideoTask extends AsyncTask<SearchParamers, Void, ResultPageContainer >
+	private class SearchVideoTask extends AsyncTask<Void, Void, ResultPageContainer >
 	{
-		private SearchParamers inputParam;
-		protected ResultPageContainer doInBackground(SearchParamers... params)
+		private String nextPageToken;
+		private String keyword;
+		GetVideoListListener handler;
+
+		public SearchVideoTask (String nextPageToken, String keyword, GetVideoListListener handler)
 		{
-			inputParam			= params.length > 0 ? params[0] : null;
-			String nextPageToken	= inputParam.getNextPageToken();
-			String keyword		= inputParam.getKeywords();
-
-
-			return search(keyword, nextPageToken);
+			this.nextPageToken	= nextPageToken;
+			this.keyword		= keyword;
+			this.handler		= handler;
 		}
 
-		protected void onPostExecute(ResultPageContainer result)
+		protected ResultPageContainer doInBackground(Void... params)
 		{
-			inputParam.onDone(result);
-		}
-	}
-
-	// Асинхронное извлечение результатов поиска
-	private class PopularVideoTask extends AsyncTask<SearchParamers, Void, ResultPageContainer >
-	{
-		private SearchParamers inputParam;
-		protected ResultPageContainer doInBackground(SearchParamers... params)
-		{
+			ResultPageContainer result = null;
 			try
 			{
-				//TimeUnit.SECONDS.sleep(1);
+				result	= search(keyword, nextPageToken);
 			}
 			catch (Exception e)
 			{
-
+				e.printStackTrace();
 			}
-			inputParam			= params.length > 0 ? params[0] : null;
-			String nextPageToken	= inputParam.getNextPageToken();
 
-
-			return getMostPopular(nextPageToken);
+			return result;
 		}
 
 		protected void onPostExecute(ResultPageContainer result)
 		{
-			inputParam.onDone(result);
+			handler.onResult(result);
 		}
 	}
 
-	interface InfoParamers
+	// Асинхронное извлечение результатов поиска
+	private class PopularVideoTask extends AsyncTask<Void, Void, ResultPageContainer >
 	{
-		public String 	getVideoId();
-		public void 	onDone(ResultPageContainer result);
+		private String nextPageToken;
+		GetVideoListListener handler;
+
+		public PopularVideoTask (String nextPageToken,GetVideoListListener handler)
+		{
+			this.nextPageToken	= nextPageToken;
+			this.handler		= handler;
+		}
+		protected ResultPageContainer doInBackground(Void... params)
+		{
+			ResultPageContainer result = null;
+
+			try
+			{
+				result	= getMostPopular(nextPageToken);
+			}
+			catch (Exception e)
+			{
+				e.printStackTrace();
+			}
+
+			return result;
+		}
+
+		protected void onPostExecute(ResultPageContainer result)
+		{
+			handler.onResult(result);
+		}
 	}
+
+
 	//---------------------------------------
 	// Асинхронное извлечение результатов поиска
-	private class VideoInfoTask extends AsyncTask<InfoParamers, Void, ResultPageContainer >
+	private class VideoInfoTask extends AsyncTask<Void, Void, ResultPageContainer >
 	{
-		private InfoParamers inputParam;
-		protected ResultPageContainer doInBackground(InfoParamers... params)
-		{
-			inputParam		= params.length > 0 ? params[0] : null;
-			String id		= inputParam.getVideoId();
+		private String id;
+		GetVideoListListener handler;
 
-			return getVideoInfo(id);
+		public VideoInfoTask (String id,GetVideoListListener handler)
+		{
+			this.id	= id;
+			this.handler	= handler;
+		}
+		protected ResultPageContainer doInBackground(Void... params)
+		{
+			ResultPageContainer result = null;
+			try
+			{
+				result = getVideoInfo(id);
+			}catch (Exception e)
+			{
+				e.printStackTrace();
+			}
+			return result;
 		}
 
 		protected void onPostExecute(ResultPageContainer result)
 		{
-			inputParam.onDone(result);
+			handler.onResult(result);
 		}
 	}
 
