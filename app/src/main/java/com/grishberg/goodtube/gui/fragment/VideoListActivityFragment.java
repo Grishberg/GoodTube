@@ -20,20 +20,19 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.github.pedrovgs.DraggableListener;
-import com.github.pedrovgs.DraggablePanel;
 import com.github.pedrovgs.DraggableView;
 import com.google.android.youtube.player.YouTubeInitializationResult;
 import com.google.android.youtube.player.YouTubePlayer;
 //import com.google.android.youtube.player.YouTubePlayerFragment;
-import com.google.android.youtube.player.YouTubePlayerFragment;
+
 import com.google.android.youtube.player.YouTubePlayerSupportFragment;
-import com.google.android.youtube.player.YouTubePlayerView;
+
 import com.grishberg.goodtube.R;
 import com.grishberg.goodtube.data.adapters.VideoListAdapter;
 import com.grishberg.goodtube.data.containers.ResultPageContainer;
 import com.grishberg.goodtube.data.containers.VideoContainer;
 import com.grishberg.goodtube.data.models.YoutubeDataModel;
-import com.grishberg.goodtube.gui.controller.MyDraggableView;
+
 import com.grishberg.goodtube.gui.listeners.GetVideoListListener;
 import com.grishberg.goodtube.gui.listeners.InfinityScrollListener;
 
@@ -58,7 +57,7 @@ public class VideoListActivityFragment extends Fragment
 
 	public static final long		ITEMS_PER_PAGE	= 10;
 
-	MyDraggableView mDraggableView;
+	DraggableView 					mDraggableView;
 	private ListView 				mListView;
 
 	private List<VideoContainer> 	mVideoList;
@@ -71,16 +70,15 @@ public class VideoListActivityFragment extends Fragment
 	private String							mPrevPageToken;
 
 	private String							mSearchKeyword;
-	private boolean							getMostPopularMode;
 	private ProgressBar						mProgressBar;
 	private int 							mShortAnimationDuration;
 	private boolean							mIsProgressBarVisible;
 	private VideoDescriptionFragment		mVideoDescriptionFragment;
-	//private YouTubePlayerFragment			mYoutubeFragment;
-	//private YouTubePlayerView				mYoutubeView;
 	private YouTubePlayerSupportFragment	mYoutubeContainer;
 	private YouTubePlayer 					mYoutubePlayer;
 	private String							mCurrentVideoId;
+
+	private boolean							mGetMostPopularMode;
 	private int playOffset				= 0;
 	private int fullscreenState			= 0;
 	private boolean mPlayerPlayModeEnabled;
@@ -96,11 +94,7 @@ public class VideoListActivityFragment extends Fragment
 		super.onActivityCreated(savedInstanceState);
 		mSearchKeyword		= "";
 		// перемещаемая панель
-		mDraggableView		= (MyDraggableView)  getView().findViewById(R.id.draggable_view);
-		mDraggableView.setTopViewRef(getView().findViewById(R.id.youtube_view));
-		//mDraggableView.setBottomViewRef(getView().findViewById(R.id.bottom_panel));
-
-		//mYoutubeFragment		= (YouTubePlayerView) getView().findViewById(R.id.youtube_view);
+		mDraggableView		= (DraggableView)  getView().findViewById(R.id.draggable_view);
 
 		mProgressBar		= (ProgressBar) getView().findViewById(R.id.video_list_progress);
 		mListView			= (ListView) getView().findViewById(R.id.video_list_view);
@@ -108,7 +102,7 @@ public class VideoListActivityFragment extends Fragment
 
 		mDataModel			= new YoutubeDataModel(getActivity());
 
-		getMostPopularMode	= true;
+		mGetMostPopularMode	= true;
 		mVideoList			= new ArrayList<VideoContainer>();
 		mVideoListAdapter	= new VideoListAdapter(getActivity(), mVideoList);
 
@@ -116,10 +110,11 @@ public class VideoListActivityFragment extends Fragment
 		mShortAnimationDuration = getResources().getInteger(
 				android.R.integer.config_mediumAnimTime);
 
+		// если было восстановление после поворота
 		if (savedInstanceState != null)
 		{
 			mPlayerPlayModeEnabled	= savedInstanceState.getBoolean(PLAYER_PLAY_ENABLED);
-			getMostPopularMode		= savedInstanceState.getBoolean(MOSTPOPULAR_MODE_STATUS);
+			mGetMostPopularMode		= savedInstanceState.getBoolean(MOSTPOPULAR_MODE_STATUS);
 			mSearchKeyword			= savedInstanceState.getString(SEARCH_KEYWORD);
 			if(mPlayerPlayModeEnabled)
 			{
@@ -138,8 +133,10 @@ public class VideoListActivityFragment extends Fragment
 		initiliazeYoutubeFragment();
 		initializeDraggablePanel();
 
-		//mDraggableView.setVisibility(View.GONE);
-
+		if (!mPlayerPlayModeEnabled)
+		{
+			mDraggableView.setVisibility(View.GONE);
+		}
 		showProgressBar();
 
 		getNextPage();
@@ -157,7 +154,7 @@ public class VideoListActivityFragment extends Fragment
 			outState.putInt(PLAYER_FULLSCREEN_STATE,mYoutubePlayer.getFullscreenControlFlags());
 			outState.putString(PLAYER_VIDEO_ID, mCurrentVideoId);
 		}
-		outState.putBoolean(MOSTPOPULAR_MODE_STATUS, getMostPopularMode);
+		outState.putBoolean(MOSTPOPULAR_MODE_STATUS, mGetMostPopularMode);
 		outState.putString(SEARCH_KEYWORD, mSearchKeyword);
 
 	}
@@ -240,7 +237,7 @@ public class VideoListActivityFragment extends Fragment
 				if (actionId == EditorInfo.IME_ACTION_DONE || isEnterUpEvent)
 				{
 					// Do your action here
-					getMostPopularMode = false;
+					mGetMostPopularMode = false;
 					mNextPageToken = null;
 					mVideoList.clear();
 					mSearchKeyword = v.getText().toString();
@@ -263,13 +260,8 @@ public class VideoListActivityFragment extends Fragment
 	// инициализация плеера
 	private void initiliazeYoutubeFragment()
 	{
-
-		//mYoutubeFragment = YouTubePlayerSupportFragment.newInstance();
-
-
 		mYoutubeContainer	= YouTubePlayerSupportFragment.newInstance();
 		mYoutubeContainer.initialize(YoutubeDataModel.YOUTUBE_API_KEY, new YouTubePlayer.OnInitializedListener()
-				//mYoutubeFragment.initialize(YoutubeDataModel.YOUTUBE_API_KEY, new YouTubePlayer.OnInitializedListener()
 		{
 
 			@Override
@@ -334,25 +326,17 @@ public class VideoListActivityFragment extends Fragment
 			{
 			}
 		});
-		getChildFragmentManager().beginTransaction().replace(R.id.youtube_view, mYoutubeContainer).commit();
 
+		getChildFragmentManager().beginTransaction().replace(R.id.fragment_youtube_player, mYoutubeContainer).commit();
 
-//		FragmentTransaction transaction = getFragmentManager().beginTransaction();
-		// Replace whatever is in the fragment_container view with this fragment,
-		// and add the transaction to the back stack
-//		transaction.replace(R.id.top_panel, mYoutubeFragment);
-//		transaction.addToBackStack(null);	// запрет отрабатывать кнопку назад
+		mVideoDescriptionFragment	= new VideoDescriptionFragment();
+		getChildFragmentManager().beginTransaction().replace(R.id.bottom_panel, mVideoDescriptionFragment).commit();
 
-		// Commit the transaction
-//		transaction.commit();
 	}
 
 	private void initializeDraggablePanel()
 	{
-
 		hookDraggableViewListener();
-
-
 	}
 
 	public void showProgressBar()
@@ -393,9 +377,10 @@ public class VideoListActivityFragment extends Fragment
 	// извлечь следующую страницу
 	public void getNextPage()
 	{
+		// для предотвращения цикличной загрузки страниц
 		if (mNextPageToken == null && mPrevPageToken != null) return;
 
-		if (getMostPopularMode)
+		if (mGetMostPopularMode)
 		{
 			mDataModel.getMostPopularResult(mNextPageToken, new GetVideoListListener()
 			{
@@ -479,7 +464,9 @@ public class VideoListActivityFragment extends Fragment
 	private void pauseVideo()
 	{
 		if(mYoutubePlayer != null && mYoutubePlayer.isPlaying())
+		{
 			mYoutubePlayer.pause();
+		}
 	}
 
 	/**
