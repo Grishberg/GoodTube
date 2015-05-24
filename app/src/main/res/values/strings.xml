@@ -5,5 +5,5 @@
     <string name="speech_not_supported">Распознование речи не поддерживается</string>
     <string name="speech_prompt">Что Вы хотите найти?</string>
     <string name="search_exception">Не удалось получить данные</string>
-
+    <string name="press_back_for_exit">Нажмите еще раз для выхода из приложения</string>
 </resources>

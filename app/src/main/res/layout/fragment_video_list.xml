@@ -24,9 +24,12 @@
 
             <ImageButton
                 android:id="@+id/speach_button"
-                android:layout_width="32dp"
-                android:layout_height="32dp"
-                android:src="@drawable/mic_64"/>
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:src="@drawable/mic128"
+                android:adjustViewBounds="true"
+                android:background="@null"
+                android:scaleType="centerInside"/>
 
             <EditText
                 android:layout_width="match_parent"

@@ -90,6 +90,8 @@ public class YoutubeDataModel
 				VideoContainer item = new VideoContainer();
 				item.setDuration(result.getContentDetails().getDuration());
 				item.setViewCount(result.getStatistics().getViewCount().longValue());
+				item.setLikeCount(result.getStatistics().getLikeCount().longValue());
+				item.setDislikeCount(result.getStatistics().getDislikeCount().longValue());
 				items.add(item);
 			}
 			if( items.size() > 0)

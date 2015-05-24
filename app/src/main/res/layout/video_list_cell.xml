@@ -7,11 +7,12 @@
     <!-- image -->
     <ImageView
         android:id="@+id/thumbnail"
-        android:layout_width="100dp"
+        android:layout_width="130dp"
         android:layout_height="100dp"
         android:layout_alignParentLeft="true"
         android:layout_gravity="center"
-        android:layout_marginLeft="2dp"/>
+        android:layout_marginLeft="4dp"
+        android:layout_marginRight="4dp"/>
     <!-- title -->
     <LinearLayout
         android:orientation="vertical"

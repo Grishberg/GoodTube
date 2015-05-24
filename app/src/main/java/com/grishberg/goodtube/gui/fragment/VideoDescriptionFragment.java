@@ -27,6 +27,8 @@ public class VideoDescriptionFragment extends Fragment
 	private TextView	mDescriptionTextView;
 	private TextView	mDurationTextView;
 	private TextView	mViewCountTextView;
+	private TextView	mLikesCountTextView;
+	private TextView	mDislikesCountTextView;
 
 	// the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
 	private static final String ARG_PARAM1 = "param1";
@@ -89,6 +91,8 @@ public class VideoDescriptionFragment extends Fragment
 		mDescriptionTextView	= (TextView) getView().findViewById(R.id.tvDescription);
 		mDurationTextView		= (TextView) getView().findViewById(R.id.tvDuraion);
 		mViewCountTextView		= (TextView) getView().findViewById(R.id.tvViewCount);
+		mLikesCountTextView		= (TextView) getView().findViewById(R.id.tvLikesCount);
+		mDislikesCountTextView		= (TextView) getView().findViewById(R.id.tvDislikesCount);
 	}
 
 	public void setMainData(VideoContainer data)
@@ -96,12 +100,16 @@ public class VideoDescriptionFragment extends Fragment
 		mDescriptionTextView.setText(data.getTitle());
 		mDurationTextView.setText("");
 		mViewCountTextView.setText("");
+		mLikesCountTextView.setText("");
+		mDislikesCountTextView.setText("");
 	}
 
 	public void setAdditionalData(VideoContainer data)
 	{
 		mDurationTextView.setText("продолжительность: " + data.getDuration());
-		mViewCountTextView.setText("количество просмотров: " + data.getViewCount());
+		mViewCountTextView.setText(data.getViewCountStr());
+		mLikesCountTextView.setText(Long.toString(data.getLikeCount()));
+		mDislikesCountTextView.setText(Long.toString(data.getDislikeCount()));
 	}
 
 	/**

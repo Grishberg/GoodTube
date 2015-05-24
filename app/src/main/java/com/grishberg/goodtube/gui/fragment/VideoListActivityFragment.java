@@ -198,34 +198,24 @@ public class VideoListActivityFragment extends Fragment
 	{
 		View view = inflater.inflate(R.layout.fragment_video_list, container, false);
 
-		// обработка нажатия кнопки Назад
-		view.setFocusableInTouchMode(true);
-		view.requestFocus();
-		view.setOnKeyListener(new View.OnKeyListener()
-		{
-			@Override
-			public boolean onKey(View v, int keyCode, KeyEvent event)
-			{
-				if (keyCode == KeyEvent.KEYCODE_BACK)
-				{
-					if (mDraggableView != null && mDraggableView.isMaximized())
-					{
-						mDraggableView.minimize();
-						return true;
-					} else
-					{
-						getFragmentManager().popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
-						return false;
-					}
-
-				} else
-				{
-					return false;
-				}
-			}
-		});
 		return view;
+	}
 
+	// обработка нажатия клавиши назад
+	public boolean allowBackPressed()
+	{
+		if (mDraggableView != null && mDraggableView.isMaximized())
+		{
+			mDraggableView.minimize();
+			Toast.makeText(getActivity().getApplicationContext(),
+					getString(R.string.press_back_for_exit),
+					Toast.LENGTH_SHORT).show();
+			return true;
+		} else
+		{
+			getFragmentManager().popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
+			return false;
+		}
 	}
 
 	// инициализация списка видео
@@ -295,7 +285,7 @@ public class VideoListActivityFragment extends Fragment
 				final boolean isEnterUpEvent = isEnterEvent && event.getAction() == KeyEvent.ACTION_UP;
 				final boolean isEnterDownEvent = isEnterEvent && event.getAction() == KeyEvent.ACTION_DOWN;
 
-				if (actionId == EditorInfo.IME_ACTION_DONE || isEnterUpEvent)
+				if (actionId == EditorInfo.IME_ACTION_DONE || actionId == EditorInfo.IME_ACTION_NEXT|| isEnterUpEvent)
 				{
 					mSearchKeyword = v.getText().toString();
 					searchVideo(mSearchKeyword);

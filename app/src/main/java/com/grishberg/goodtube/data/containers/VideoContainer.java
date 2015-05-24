@@ -20,7 +20,28 @@ public class VideoContainer
 	private String	description;
 	private String	duration;
 	private long	viewCount;
+	private long	likeCount;
+	private	long	dislikeCount;
 
+	public long getLikeCount()
+	{
+		return likeCount;
+	}
+
+	public void setLikeCount(long likeCount)
+	{
+		this.likeCount = likeCount;
+	}
+
+	public long getDislikeCount()
+	{
+		return dislikeCount;
+	}
+
+	public void setDislikeCount(long dislikeCount)
+	{
+		this.dislikeCount = dislikeCount;
+	}
 
 	public String getId()
 	{
@@ -84,6 +105,38 @@ public class VideoContainer
 		this.description = description;
 	}
 
+	public String getViewCountStr()
+	{
+		String prefix = "";
+
+		switch ( (int)(viewCount % 10) )
+		{
+			case 0:
+			case 5:
+			case 6:
+			case 7:
+			case 8:
+			case 9:
+			case 11:
+			case 12:
+			case 13:
+			case 14:
+				prefix	= "просмотров";
+				break;
+
+			case 1:
+				prefix	= "просмотр";
+				break;
+
+			case 2:
+			case 3:
+			case 4:
+				prefix	= "просмотра";
+				break;
+		}
+		return String.format("%d %s",viewCount, prefix);
+	}
+
 	public long getViewCount()
 	{
 		return viewCount;
@@ -91,6 +144,7 @@ public class VideoContainer
 
 	public void setViewCount(long viewCount)
 	{
+
 		this.viewCount = viewCount;
 	}
 
