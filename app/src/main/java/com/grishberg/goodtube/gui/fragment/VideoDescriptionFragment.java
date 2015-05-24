@@ -97,6 +97,11 @@ public class VideoDescriptionFragment extends Fragment
 		mLikesCountTextView		= (TextView) getView().findViewById(R.id.tvLikesCount);
 		mDislikesCountTextView		= (TextView) getView().findViewById(R.id.tvDislikesCount);
 
+		onMaximize();
+	}
+
+	public void onMaximize()
+	{
 		final Animation translateAnimation = AnimationUtils.loadAnimation(getActivity(),
 				R.anim.translate_left);
 		LinearLayout descriptionPanel	= (LinearLayout) getView().findViewById(R.id.descriptionPanel);
