@@ -7,6 +7,9 @@ package com.grishberg.goodtube.gui.fragment;
 		import android.view.LayoutInflater;
 		import android.view.View;
 		import android.view.ViewGroup;
+		import android.view.animation.Animation;
+		import android.view.animation.AnimationUtils;
+		import android.widget.LinearLayout;
 		import android.widget.TextView;
 
 		import com.grishberg.goodtube.R;
@@ -93,6 +96,11 @@ public class VideoDescriptionFragment extends Fragment
 		mViewCountTextView		= (TextView) getView().findViewById(R.id.tvViewCount);
 		mLikesCountTextView		= (TextView) getView().findViewById(R.id.tvLikesCount);
 		mDislikesCountTextView		= (TextView) getView().findViewById(R.id.tvDislikesCount);
+
+		final Animation translateAnimation = AnimationUtils.loadAnimation(getActivity(),
+				R.anim.translate_left);
+		LinearLayout descriptionPanel	= (LinearLayout) getView().findViewById(R.id.descriptionPanel);
+		descriptionPanel.startAnimation(translateAnimation);
 	}
 
 	public void setMainData(VideoContainer data)

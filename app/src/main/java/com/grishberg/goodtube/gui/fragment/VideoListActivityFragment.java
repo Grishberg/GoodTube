@@ -15,10 +15,13 @@ import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.view.inputmethod.EditorInfo;
 import android.widget.AdapterView;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -197,9 +200,9 @@ public class VideoListActivityFragment extends Fragment
 				mDraggableView.isMaximized())
 		{
 			mDraggableView.minimize();
-			Toast.makeText(getActivity().getApplicationContext(),
-					getString(R.string.press_back_for_exit),
-					Toast.LENGTH_SHORT).show();
+			//Toast.makeText(getActivity().getApplicationContext(),
+			//		getString(R.string.press_back_for_exit),
+			//		Toast.LENGTH_SHORT).show();
 			return true;
 		} else
 		{
@@ -407,6 +410,14 @@ public class VideoListActivityFragment extends Fragment
 	private void hideProgressBar()
 	{
 		if(!mIsProgressBarVisible) return;
+		//-------- появление выкатыванием
+//		mListView.setAlpha(0f);
+//		mListView.setVisibility(View.VISIBLE);
+//		final Animation translateAnimation = AnimationUtils.loadAnimation(getActivity(),
+//				R.anim.translate_left);
+//		mListView.startAnimation(translateAnimation);
+
+		//-------- появление с изменением альфа-канала
 		mListView.setAlpha(0f);
 		mListView.setVisibility(View.VISIBLE);
 
