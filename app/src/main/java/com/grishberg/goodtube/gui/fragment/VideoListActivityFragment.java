@@ -5,28 +5,22 @@ import android.animation.AnimatorListenerAdapter;
 import android.app.Activity;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
-import android.graphics.Point;
-import android.media.Image;
 import android.speech.RecognizerIntent;
 import android.support.v4.app.Fragment;
 import android.os.Bundle;
 import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentTransaction;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.ViewOutlineProvider;
 import android.view.inputmethod.EditorInfo;
-import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.ProgressBar;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -114,9 +108,9 @@ public class VideoListActivityFragment extends Fragment
 		mSearchEdit			= (EditText) getView().findViewById(R.id.searchTextEdit);
 		mDataModel			= new YoutubeDataModel(getActivity());
 
-		// узнать размер экрана
+		// узнать размер экрана в dip, для кооректной установки масштаба плеера,
+		// youtube плеер не может работать с размером, меньшим 200x110 dip
 		DisplayMetrics displayMetrics = getActivity().getResources().getDisplayMetrics();
-
 		float dpHeight		= displayMetrics.heightPixels / displayMetrics.density;
 		float dpWidth		= displayMetrics.widthPixels / displayMetrics.density;
 		float scaleFactor	= dpWidth / 200.0f;
@@ -153,10 +147,6 @@ public class VideoListActivityFragment extends Fragment
 				mCurrentVideoId		= savedInstanceState.getString(PLAYER_VIDEO_ID);
 			}
 		}
-		else
-		{
-			Log.d(TAG,"OnCreateView->SavedInstanceState null");
-		}
 
 		initiliazeVideListView();
 		initiliazeSearchEdit();
@@ -175,7 +165,7 @@ public class VideoListActivityFragment extends Fragment
 	@Override
 	public void onSaveInstanceState(Bundle outState)
 	{
-		// Save the values you need from your textview into "outState"-object
+		// Сохранение состояния плеера во время поворота экрана
 		super.onSaveInstanceState(outState);
 		if(mYoutubePlayer != null)
 		{
@@ -196,15 +186,15 @@ public class VideoListActivityFragment extends Fragment
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
 							 Bundle savedInstanceState)
 	{
-		View view = inflater.inflate(R.layout.fragment_video_list, container, false);
-
-		return view;
+		return  inflater.inflate(R.layout.fragment_video_list, container, false);
 	}
 
 	// обработка нажатия клавиши назад
 	public boolean allowBackPressed()
 	{
-		if (mDraggableView != null && mDraggableView.isMaximized())
+		if (mDraggableView != null &&
+				mDraggableView.getVisibility() == View.VISIBLE &&
+				mDraggableView.isMaximized())
 		{
 			mDraggableView.minimize();
 			Toast.makeText(getActivity().getApplicationContext(),
@@ -303,9 +293,10 @@ public class VideoListActivityFragment extends Fragment
 		});
 	}
 
+	// поиск роликов по ключевым словам
 	private void searchVideo(String keyword)
 	{
-		// Do your action here
+		mSearchKeyword		= keyword;
 		mGetMostPopularMode = false;
 		mNextPageToken		= null;
 		mPrevPageToken		= null;
@@ -412,7 +403,7 @@ public class VideoListActivityFragment extends Fragment
 		mProgressBar.setVisibility(View.VISIBLE);
 	}
 
-	// скрытие прогрессбара и отображение списка
+	// скрытие прогрессбара и плавное отображение списка
 	private void hideProgressBar()
 	{
 		if(!mIsProgressBarVisible) return;
@@ -491,10 +482,6 @@ public class VideoListActivityFragment extends Fragment
 
 
 	//------------ Draggeble panel --------------------------------------------------------
-
-	/*
-	 * Hook DraggableListener to draggableView to pause or resume VideoView.
-	 */
 	private void hookDraggableViewListener()
 	{
 		mDraggableView.setDraggableListener(new DraggableListener()
@@ -556,9 +543,6 @@ public class VideoListActivityFragment extends Fragment
 
 
 // -------- обработка речи --------------------------
-	/**
-	 * Showing google speech input dialog
-	 * */
 	private void promptSpeechInput()
 	{
 		Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
@@ -567,9 +551,11 @@ public class VideoListActivityFragment extends Fragment
 		intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault());
 		intent.putExtra(RecognizerIntent.EXTRA_PROMPT,
 				getString(R.string.speech_prompt));
-		try {
+		try
+		{
 			startActivityForResult(intent, REQ_CODE_SPEECH_INPUT);
-		} catch (ActivityNotFoundException a)
+		}
+		catch (ActivityNotFoundException a)
 		{
 			Toast.makeText(getActivity().getApplicationContext(),
 					getString(R.string.speech_not_supported),
