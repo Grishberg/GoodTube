@@ -2,4 +2,8 @@
     <string name="app_name">GoodTube</string>
     <string name="search">Поиск</string>
     <string name="action_settings">Settings</string>
+    <string name="speech_not_supported">Распознование речи не поддерживается</string>
+    <string name="speech_prompt">Что Вы хотите найти?</string>
+    <string name="search_exception">Не удалось получить данные</string>
+
 </resources>

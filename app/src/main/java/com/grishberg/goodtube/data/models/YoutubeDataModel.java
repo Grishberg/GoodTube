@@ -112,11 +112,16 @@ public class YoutubeDataModel
 			YouTube.Search.List search	= mYoutube.search().list("id,snippet");
 			search.setKey(YOUTUBE_API_KEY);
 			search.setType("video");
-			search.setFields("items(id/videoId,snippet/publishedAt,snippet/title,snippet/description,snippet/thumbnails/default/url)");
+			//search.setFields("items(id/videoId,snippet/publishedAt,snippet/title,snippet/description,snippet/thumbnails/default/url)");
+			search.setMaxResults(VideoListActivityFragment.ITEMS_PER_PAGE);
 			search.setQ(searchKeyword);
+
 			if(pageToken != null && pageToken.length() > 0)
 			{
 				search.setPageToken(pageToken);
+			}
+			else
+			{
 			}
 
 			SearchListResponse response	= search.execute();

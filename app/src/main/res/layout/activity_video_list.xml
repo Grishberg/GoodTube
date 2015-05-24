@@ -4,4 +4,6 @@
           android:name="com.grishberg.goodtube.gui.fragment.VideoListActivityFragment"
           tools:layout="@layout/fragment_video_list"
           android:layout_width="match_parent"
-          android:layout_height="match_parent"/>
+          android:layout_height="match_parent"
+
+    />

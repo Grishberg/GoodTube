@@ -2,9 +2,17 @@ package com.grishberg.goodtube.gui.fragment;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
+import android.app.Activity;
+import android.content.ActivityNotFoundException;
+import android.content.Intent;
+import android.graphics.Point;
+import android.media.Image;
+import android.speech.RecognizerIntent;
 import android.support.v4.app.Fragment;
 import android.os.Bundle;
+import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -15,9 +23,12 @@ import android.view.inputmethod.EditorInfo;
 import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.ProgressBar;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.github.pedrovgs.DraggableListener;
 import com.github.pedrovgs.DraggableView;
@@ -38,6 +49,7 @@ import com.grishberg.goodtube.gui.listeners.InfinityScrollListener;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 
 /**
@@ -45,14 +57,14 @@ import java.util.List;
  */
 public class VideoListActivityFragment extends Fragment
 {
-	public static final String		TAG						= "YoutubeApp";
+	public static final String		TAG						= "YoutubeAppFragment";
 	public static final String		PLAYER_PLAY_ENABLED		= "playerPlayEnabled";
 	public static final String		PLAYER_PLAY_OFFSET		= "playerPlayOffset";
 	public static final String		MOSTPOPULAR_MODE_STATUS	= "mostpopularModeStatus";
 	public static final String		PLAYER_FULLSCREEN_STATE	= "playerFullscreenState";
 	public static final String		PLAYER_VIDEO_ID			= "playerVideoId";
 	public static final String		SEARCH_KEYWORD			= "searchKeyword";
-
+	private final int REQ_CODE_SPEECH_INPUT = 100;
 
 
 	public static final long		ITEMS_PER_PAGE	= 10;
@@ -62,7 +74,7 @@ public class VideoListActivityFragment extends Fragment
 
 	private List<VideoContainer> 	mVideoList;
 	private EditText				mSearchEdit;
-
+	private ImageButton				mSpeachButton;
 
 	private VideoListAdapter 				mVideoListAdapter;
 	private YoutubeDataModel 				mDataModel;
@@ -79,8 +91,8 @@ public class VideoListActivityFragment extends Fragment
 	private String							mCurrentVideoId;
 
 	private boolean							mGetMostPopularMode;
-	private int mPlayOffset				= 0;
-	private int fullscreenState			= 0;
+	private int mPlayOffset					= 0;
+	private int mFullscreenState			= 0;
 	private boolean mPlayerPlayModeEnabled;
 	private boolean mFullscreenStatus;
 	//private PlayerLayout 			mYoutubeLayout;
@@ -93,14 +105,23 @@ public class VideoListActivityFragment extends Fragment
 	{
 		super.onActivityCreated(savedInstanceState);
 		mSearchKeyword		= "";
+
 		// перемещаемая панель
 		mDraggableView		= (DraggableView)  getView().findViewById(R.id.draggable_view);
-
+		mSpeachButton		= (ImageButton) getView().findViewById(R.id.speach_button);
 		mProgressBar		= (ProgressBar) getView().findViewById(R.id.video_list_progress);
 		mListView			= (ListView) getView().findViewById(R.id.video_list_view);
 		mSearchEdit			= (EditText) getView().findViewById(R.id.searchTextEdit);
-
 		mDataModel			= new YoutubeDataModel(getActivity());
+
+		// узнать размер экрана
+		DisplayMetrics displayMetrics = getActivity().getResources().getDisplayMetrics();
+
+		float dpHeight		= displayMetrics.heightPixels / displayMetrics.density;
+		float dpWidth		= displayMetrics.widthPixels / displayMetrics.density;
+		float scaleFactor	= dpWidth / 200.0f;
+		mDraggableView.setXTopViewScaleFactor(3);
+		mDraggableView.setYTopViewScaleFactor(3);
 
 		mGetMostPopularMode	= true;
 		mVideoList			= new ArrayList<VideoContainer>();
@@ -109,6 +130,15 @@ public class VideoListActivityFragment extends Fragment
 		// настройка анимации перехода из прогресс бара на список видео
 		mShortAnimationDuration = getResources().getInteger(
 				android.R.integer.config_mediumAnimTime);
+
+		mSpeachButton.setOnClickListener(new View.OnClickListener()
+		{
+			@Override
+			public void onClick(View v)
+			{
+				promptSpeechInput();
+			}
+		});
 
 		// если было восстановление после поворота
 		if (savedInstanceState != null)
@@ -119,7 +149,7 @@ public class VideoListActivityFragment extends Fragment
 			if(mPlayerPlayModeEnabled)
 			{
 				mPlayOffset			= savedInstanceState.getInt(PLAYER_PLAY_OFFSET);
-				fullscreenState		= savedInstanceState.getInt(PLAYER_FULLSCREEN_STATE);
+				mFullscreenState		= savedInstanceState.getInt(PLAYER_FULLSCREEN_STATE);
 				mCurrentVideoId		= savedInstanceState.getString(PLAYER_VIDEO_ID);
 			}
 		}
@@ -147,16 +177,18 @@ public class VideoListActivityFragment extends Fragment
 	{
 		// Save the values you need from your textview into "outState"-object
 		super.onSaveInstanceState(outState);
-		outState.putBoolean(PLAYER_PLAY_ENABLED, mYoutubePlayer.isPlaying());
-		if(mYoutubePlayer.isPlaying())
+		if(mYoutubePlayer != null)
 		{
-			outState.putInt(PLAYER_PLAY_OFFSET, mYoutubePlayer.getCurrentTimeMillis());
-			outState.putInt(PLAYER_FULLSCREEN_STATE,mYoutubePlayer.getFullscreenControlFlags());
-			outState.putString(PLAYER_VIDEO_ID, mCurrentVideoId);
+			outState.putBoolean(PLAYER_PLAY_ENABLED, mYoutubePlayer.isPlaying());
+			if (mYoutubePlayer.isPlaying())
+			{
+				outState.putInt(PLAYER_PLAY_OFFSET, mYoutubePlayer.getCurrentTimeMillis());
+				outState.putInt(PLAYER_FULLSCREEN_STATE, mYoutubePlayer.getFullscreenControlFlags());
+				outState.putString(PLAYER_VIDEO_ID, mCurrentVideoId);
+			}
+			outState.putBoolean(MOSTPOPULAR_MODE_STATUS, mGetMostPopularMode);
+			outState.putString(SEARCH_KEYWORD, mSearchKeyword);
 		}
-		outState.putBoolean(MOSTPOPULAR_MODE_STATUS, mGetMostPopularMode);
-		outState.putString(SEARCH_KEYWORD, mSearchKeyword);
-
 	}
 
 
@@ -164,7 +196,35 @@ public class VideoListActivityFragment extends Fragment
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
 							 Bundle savedInstanceState)
 	{
-		return inflater.inflate(R.layout.fragment_video_list, container, false);
+		View view = inflater.inflate(R.layout.fragment_video_list, container, false);
+
+		// обработка нажатия кнопки Назад
+		view.setFocusableInTouchMode(true);
+		view.requestFocus();
+		view.setOnKeyListener(new View.OnKeyListener()
+		{
+			@Override
+			public boolean onKey(View v, int keyCode, KeyEvent event)
+			{
+				if (keyCode == KeyEvent.KEYCODE_BACK)
+				{
+					if (mDraggableView != null && mDraggableView.isMaximized())
+					{
+						mDraggableView.minimize();
+						return true;
+					} else
+					{
+						getFragmentManager().popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
+						return false;
+					}
+
+				} else
+				{
+					return false;
+				}
+			}
+		});
+		return view;
 
 	}
 
@@ -193,6 +253,7 @@ public class VideoListActivityFragment extends Fragment
 			{
 				if (mDraggableView.getVisibility() != View.VISIBLE)
 					mDraggableView.setVisibility(View.VISIBLE);
+
 				VideoContainer item = (VideoContainer) mListView.getAdapter().getItem(i);
 				mCurrentVideoId = item.getId();
 				mDataModel.getVideoInfo(item.getId(), new GetVideoListListener()
@@ -236,13 +297,8 @@ public class VideoListActivityFragment extends Fragment
 
 				if (actionId == EditorInfo.IME_ACTION_DONE || isEnterUpEvent)
 				{
-					// Do your action here
-					mGetMostPopularMode = false;
-					mNextPageToken = null;
-					mVideoList.clear();
 					mSearchKeyword = v.getText().toString();
-					showProgressBar();
-					getNextPage();
+					searchVideo(mSearchKeyword);
 					return true;
 				} else if (isEnterDownEvent)
 				{
@@ -255,6 +311,18 @@ public class VideoListActivityFragment extends Fragment
 				}
 			}
 		});
+	}
+
+	private void searchVideo(String keyword)
+	{
+		// Do your action here
+		mGetMostPopularMode = false;
+		mNextPageToken		= null;
+		mPrevPageToken		= null;
+		mVideoList.clear();
+
+		showProgressBar();
+		getNextPage();
 	}
 
 	// инициализация плеера
@@ -414,9 +482,19 @@ public class VideoListActivityFragment extends Fragment
 	public void onGetPageResult(ResultPageContainer result)
 	{
 		hideProgressBar();
-		if(result == null) return;
+		if(result == null)
+		{
+			Toast.makeText(getActivity().getApplicationContext(),
+					getString(R.string.search_exception),
+					Toast.LENGTH_SHORT).show();
+			return;
+		}
 		mNextPageToken	= result.getNextPageToken();
 		mPrevPageToken	= result.getPrevPageToken();
+		if(mNextPageToken == null && mPrevPageToken == null)
+		{
+			mPrevPageToken = "";
+		}
 		mVideoList.addAll(result.getItems());
 		mVideoListAdapter.notifyDataSetChanged();
 	}
@@ -486,4 +564,55 @@ public class VideoListActivityFragment extends Fragment
 		}
 	}
 
+
+// -------- обработка речи --------------------------
+	/**
+	 * Showing google speech input dialog
+	 * */
+	private void promptSpeechInput()
+	{
+		Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+		intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,
+				RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+		intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault());
+		intent.putExtra(RecognizerIntent.EXTRA_PROMPT,
+				getString(R.string.speech_prompt));
+		try {
+			startActivityForResult(intent, REQ_CODE_SPEECH_INPUT);
+		} catch (ActivityNotFoundException a)
+		{
+			Toast.makeText(getActivity().getApplicationContext(),
+					getString(R.string.speech_not_supported),
+					Toast.LENGTH_SHORT).show();
+		}
+	}
+
+	/**
+	 * Receiving speech input
+	 * */
+	@Override
+	public void onActivityResult(int requestCode, int resultCode, Intent data)
+	{
+		super.onActivityResult(requestCode, resultCode, data);
+
+		switch (requestCode)
+		{
+			case REQ_CODE_SPEECH_INPUT:
+			{
+				if (resultCode == Activity.RESULT_OK && null != data)
+				{
+					ArrayList<String> result = data
+							.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
+					mSearchKeyword = result.get(0);
+					if(mSearchKeyword != null && mSearchKeyword.length() > 0)
+					{
+						mSearchEdit.setText(mSearchKeyword);
+						searchVideo(mSearchKeyword);
+					}
+				}
+				break;
+			}
+
+		}
+	}
 }
