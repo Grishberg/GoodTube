@@ -15,12 +15,14 @@
             android:orientation="horizontal"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="#ffff782b" >
+            android:background="@color/primary_dark"
+            >
 
             <TextView
                 android:text="@string/search"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content" />
+                android:layout_height="wrap_content"
+                android:textColor="@color/primary_text"/>
 
             <ImageButton
                 android:id="@+id/speach_button"
@@ -36,7 +38,9 @@
                 android:layout_height="wrap_content"
                 android:id="@+id/searchTextEdit"
                 android:layout_marginLeft="8dp"
-                android:singleLine="true" />
+                android:singleLine="true"
+                android:textColor="@color/primary_text"
+                />
 
         </LinearLayout>
         <!-- прогресс загрузки -->

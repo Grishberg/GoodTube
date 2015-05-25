@@ -15,6 +15,8 @@ import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
+import android.view.WindowManager;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.view.inputmethod.EditorInfo;
@@ -176,7 +178,7 @@ public class VideoListActivityFragment extends Fragment
 			if (mYoutubePlayer.isPlaying())
 			{
 				outState.putInt(PLAYER_PLAY_OFFSET, mYoutubePlayer.getCurrentTimeMillis());
-				outState.putInt(PLAYER_FULLSCREEN_STATE, mYoutubePlayer.getFullscreenControlFlags());
+				//outState.putInt(PLAYER_FULLSCREEN_STATE, mYoutubePlayer.getFullscreenControlFlags());
 				outState.putString(PLAYER_VIDEO_ID, mCurrentVideoId);
 			}
 			outState.putBoolean(MOSTPOPULAR_MODE_STATUS, mGetMostPopularMode);
@@ -200,9 +202,6 @@ public class VideoListActivityFragment extends Fragment
 				mDraggableView.isMaximized())
 		{
 			mDraggableView.minimize();
-			//Toast.makeText(getActivity().getApplicationContext(),
-			//		getString(R.string.press_back_for_exit),
-			//		Toast.LENGTH_SHORT).show();
 			return true;
 		} else
 		{
@@ -313,9 +312,9 @@ public class VideoListActivityFragment extends Fragment
 	private void initiliazeYoutubeFragment()
 	{
 		mYoutubeContainer	= YouTubePlayerSupportFragment.newInstance();
-		mYoutubeContainer.initialize(YoutubeDataModel.YOUTUBE_API_KEY, new YouTubePlayer.OnInitializedListener()
+		mYoutubeContainer.initialize(YoutubeDataModel.YOUTUBE_API_KEY,
+				new YouTubePlayer.OnInitializedListener()
 		{
-
 			@Override
 			public void onInitializationSuccess(YouTubePlayer.Provider provider,
 												final YouTubePlayer player, boolean wasRestored)

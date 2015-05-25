@@ -5,6 +5,8 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.Window;
+import android.view.WindowManager;
 
 import com.google.android.youtube.player.YouTubeBaseActivity;
 import com.grishberg.goodtube.R;
@@ -19,12 +21,15 @@ public class VideoListActivity extends AppCompatActivity
 	{
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_video_list);
+
+
 	}
 
 	@Override
 	public void onBackPressed()
 	{
-		final VideoListActivityFragment fragment = (VideoListActivityFragment) getSupportFragmentManager().findFragmentByTag("VideoListFragment");
+		final VideoListActivityFragment fragment =
+				(VideoListActivityFragment) getSupportFragmentManager().findFragmentByTag("VideoListFragment");
 
 		if (fragment != null && fragment.allowBackPressed())
 		{ // and then you define a method allowBackPressed with the logic to allow back pressed or not
