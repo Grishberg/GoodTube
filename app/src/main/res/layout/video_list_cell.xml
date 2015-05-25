@@ -33,7 +33,9 @@
             android:layout_toRightOf="@+id/thumbnail"
             android:layout_toEndOf="@+id/thumbnail"
             android:textColor="@color/abc_primary_text_material_light"
-            android:textSize="24dp"/>
+            android:textSize="24dp"
+
+            />
 
         <TextView
             android:id="@+id/tvDate"
