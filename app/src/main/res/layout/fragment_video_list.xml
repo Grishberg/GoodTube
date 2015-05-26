@@ -8,41 +8,53 @@
     <LinearLayout
         android:orientation="vertical"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        android:animateLayoutChanges="true">
 
         <!-- блок поиска -->
-        <LinearLayout
-            android:orientation="horizontal"
+        <RelativeLayout
+            android:id="@+id/search_panel"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="@color/primary_dark"
             >
 
             <TextView
+                android:id="@+id/caption_text_string"
                 android:text="@string/search"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textColor="@color/primary_text"/>
-
-            <ImageButton
-                android:id="@+id/speach_button"
-                android:layout_width="36dp"
-                android:layout_height="36dp"
-                android:src="@drawable/mic128"
-                android:adjustViewBounds="true"
-                android:background="@null"
-                android:scaleType="centerInside"/>
+                android:textColor="@color/primary_text"
+                android:layout_alignParentLeft="true"
+                android:layout_alignParentStart="true"
+                android:layout_centerVertical="true"/>
 
             <EditText
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
                 android:id="@+id/searchTextEdit"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+
                 android:layout_marginLeft="8dp"
                 android:singleLine="true"
-                android:textColor="@color/primary_text"
-                />
 
-        </LinearLayout>
+                android:textColor="@color/primary_text"
+                android:layout_toRightOf="@+id/caption_text_string"
+                android:layout_toStartOf="@+id/caption_text_string"
+                android:layout_toLeftOf="@+id/close_search_button"
+                android:layout_marginRight="8dp"
+                android:layout_alignParentLeft="false"/>
+
+            <ImageButton
+                android:id="@+id/close_search_button"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:src="@drawable/close_icon"
+                android:adjustViewBounds="true"
+                android:background="@null"
+                android:scaleType="centerInside"
+                android:layout_alignParentRight="true"
+                android:layout_centerVertical="true"/>
+        </RelativeLayout>
         <!-- прогресс загрузки -->
         <ProgressBar
             android:id="@+id/video_list_progress"

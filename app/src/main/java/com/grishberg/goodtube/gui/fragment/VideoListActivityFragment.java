@@ -13,12 +13,17 @@ import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
+import android.view.animation.AccelerateInterpolator;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
+import android.view.animation.TranslateAnimation;
 import android.view.inputmethod.EditorInfo;
 import android.widget.AdapterView;
 import android.widget.EditText;
@@ -26,6 +31,7 @@ import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.ProgressBar;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -43,6 +49,7 @@ import com.grishberg.goodtube.data.containers.ResultPageContainer;
 import com.grishberg.goodtube.data.containers.VideoContainer;
 import com.grishberg.goodtube.data.models.YoutubeDataModel;
 
+import com.grishberg.goodtube.gui.animation.ExpandAnimation;
 import com.grishberg.goodtube.gui.listeners.GetVideoListListener;
 import com.grishberg.goodtube.gui.listeners.InfinityScrollListener;
 
@@ -73,7 +80,7 @@ public class VideoListActivityFragment extends Fragment
 
 	private List<VideoContainer> 	mVideoList;
 	private EditText				mSearchEdit;
-	private ImageButton				mSpeachButton;
+	private ImageButton				mCloseEditButton;
 
 	private VideoListAdapter 				mVideoListAdapter;
 	private YoutubeDataModel 				mDataModel;
@@ -88,6 +95,7 @@ public class VideoListActivityFragment extends Fragment
 	private YouTubePlayerSupportFragment	mYoutubeContainer;
 	private YouTubePlayer 					mYoutubePlayer;
 	private String							mCurrentVideoId;
+	private RelativeLayout					mSearchPanel;
 
 	private boolean							mGetMostPopularMode;
 	private int mPlayOffset					= 0;
@@ -103,14 +111,18 @@ public class VideoListActivityFragment extends Fragment
 	public void onActivityCreated(Bundle savedInstanceState)
 	{
 		super.onActivityCreated(savedInstanceState);
+		setHasOptionsMenu(true);
 		mSearchKeyword		= "";
 
 		// перемещаемая панель
 		mDraggableView		= (DraggableView)  getView().findViewById(R.id.draggable_view);
-		mSpeachButton		= (ImageButton) getView().findViewById(R.id.speach_button);
+		mCloseEditButton	= (ImageButton) getView().findViewById(R.id.close_search_button);
 		mProgressBar		= (ProgressBar) getView().findViewById(R.id.video_list_progress);
 		mListView			= (ListView) getView().findViewById(R.id.video_list_view);
 		mSearchEdit			= (EditText) getView().findViewById(R.id.searchTextEdit);
+		mSearchPanel		= (RelativeLayout) getView().findViewById(R.id.search_panel);
+		mSearchPanel.setVisibility(View.GONE);
+
 		mDataModel			= new YoutubeDataModel(getActivity());
 
 		// узнать размер экрана в dip, для кооректной установки масштаба плеера,
@@ -130,12 +142,14 @@ public class VideoListActivityFragment extends Fragment
 		mShortAnimationDuration = getResources().getInteger(
 				android.R.integer.config_mediumAnimTime);
 
-		mSpeachButton.setOnClickListener(new View.OnClickListener()
+
+
+		mCloseEditButton.setOnClickListener(new View.OnClickListener()
 		{
 			@Override
 			public void onClick(View v)
 			{
-				promptSpeechInput();
+				hideSearchPanel();
 			}
 		});
 
@@ -165,6 +179,39 @@ public class VideoListActivityFragment extends Fragment
 		showProgressBar();
 
 		getNextPage();
+	}
+
+	//------------- функции отображения меню -----------------
+	@Override
+	public void onCreateOptionsMenu(Menu menu, MenuInflater inflater)
+	{
+		inflater.inflate(R.menu.menu_video_list, menu);
+		super.onCreateOptionsMenu(menu, inflater);
+	}
+
+
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item)
+	{
+		// Handle action bar item clicks here. The action bar will
+		// automatically handle clicks on the Home/Up button, so long
+		// as you specify a parent activity in AndroidManifest.xml.
+		int id = item.getItemId();
+
+		//noinspection SimplifiableIfStatement
+		switch (id)
+		{
+			case R.id.voice_search:
+				// распознать речь для поиска
+				promptSpeechInput();
+				return true;
+			case R.id.text_search:
+				// отобразить панель для поиска
+				showSearchPanel();
+				return true;
+		}
+
+		return super.onOptionsItemSelected(item);
 	}
 
 	@Override
@@ -277,7 +324,7 @@ public class VideoListActivityFragment extends Fragment
 				final boolean isEnterUpEvent = isEnterEvent && event.getAction() == KeyEvent.ACTION_UP;
 				final boolean isEnterDownEvent = isEnterEvent && event.getAction() == KeyEvent.ACTION_DOWN;
 
-				if (actionId == EditorInfo.IME_ACTION_DONE || actionId == EditorInfo.IME_ACTION_NEXT|| isEnterUpEvent)
+				if (actionId == EditorInfo.IME_ACTION_DONE || actionId == EditorInfo.IME_ACTION_NEXT || isEnterUpEvent)
 				{
 					mSearchKeyword = v.getText().toString();
 					searchVideo(mSearchKeyword);
@@ -403,6 +450,7 @@ public class VideoListActivityFragment extends Fragment
 		mProgressBar.setAlpha(1f);
 		mListView.setVisibility(View.GONE);
 		mProgressBar.setVisibility(View.VISIBLE);
+
 	}
 
 	// скрытие прогрессбара и плавное отображение списка
@@ -437,6 +485,41 @@ public class VideoListActivityFragment extends Fragment
 						mIsProgressBarVisible = false;
 					}
 				});
+	}
+
+	public void hideSearchPanel()
+	{
+		Animation translateAnimation = AnimationUtils.loadAnimation(getActivity(),
+				R.anim.slide_up);
+		mSearchPanel.startAnimation(translateAnimation);
+		mSearchPanel.setVisibility(View.GONE);
+/*
+		// Creating the expand animation for the item
+		ExpandAnimation expandAni = new ExpandAnimation(mSearchPanel, 500);
+
+		// Start the animation on the toolbar
+		mSearchPanel.startAnimation(expandAni);
+*/
+	}
+
+	public void showSearchPanel()
+	{
+		if(mSearchPanel.getVisibility() != View.VISIBLE)
+		{
+			Animation translateAnimation = AnimationUtils.loadAnimation(getActivity(),
+					R.anim.slide_down);
+			mSearchPanel.setVisibility(View.VISIBLE);
+			mSearchPanel.startAnimation(translateAnimation);
+		}
+/*
+
+		// Creating the expand animation for the item
+		ExpandAnimation expandAni = new ExpandAnimation(mSearchPanel, 500);
+
+		// Start the animation on the toolbar
+		mSearchPanel.startAnimation(expandAni);
+
+*/
 	}
 
 	// извлечь следующую страницу
@@ -480,9 +563,9 @@ public class VideoListActivityFragment extends Fragment
 					Toast.LENGTH_SHORT).show();
 			return;
 		}
-		mNextPageToken	= result.getNextPageToken();
-		mPrevPageToken	= result.getPrevPageToken();
-		if(mNextPageToken == null && mPrevPageToken == null)
+		mNextPageToken = result.getNextPageToken();
+		mPrevPageToken = result.getPrevPageToken();
+		if (mNextPageToken == null && mPrevPageToken == null)
 		{
 			mPrevPageToken = "";
 		}
@@ -499,7 +582,7 @@ public class VideoListActivityFragment extends Fragment
 			@Override
 			public void onMaximized()
 			{
-				if(mYoutubePlayer!= null && !mYoutubePlayer.isPlaying())
+				if (mYoutubePlayer != null && !mYoutubePlayer.isPlaying())
 				{
 					//startVideo();
 				}
@@ -593,6 +676,7 @@ public class VideoListActivityFragment extends Fragment
 					if(mSearchKeyword != null && mSearchKeyword.length() > 0)
 					{
 						mSearchEdit.setText(mSearchKeyword);
+						showSearchPanel();
 						searchVideo(mSearchKeyword);
 					}
 				}

@@ -6,4 +6,6 @@
     <string name="speech_prompt">Что Вы хотите найти?</string>
     <string name="search_exception">Не удалось получить данные</string>
     <string name="press_back_for_exit">Нажмите еще раз для выхода из приложения</string>
+    <string name="text_search">Поиск</string>
+    <string name="voice_search">Голосовой поиск</string>
 </resources>
