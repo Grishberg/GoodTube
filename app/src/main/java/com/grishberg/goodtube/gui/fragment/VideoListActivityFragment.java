@@ -49,7 +49,6 @@ import com.grishberg.goodtube.data.containers.ResultPageContainer;
 import com.grishberg.goodtube.data.containers.VideoContainer;
 import com.grishberg.goodtube.data.models.YoutubeDataModel;
 
-import com.grishberg.goodtube.gui.animation.ExpandAnimation;
 import com.grishberg.goodtube.gui.listeners.GetVideoListListener;
 import com.grishberg.goodtube.gui.listeners.InfinityScrollListener;
 
@@ -443,7 +442,7 @@ public class VideoListActivityFragment extends Fragment
 		hookDraggableViewListener();
 	}
 
-	public void showProgressBar()
+	private void showProgressBar()
 	{
 		mIsProgressBarVisible	= true;
 		mListView.setAlpha(1f);
@@ -493,6 +492,7 @@ public class VideoListActivityFragment extends Fragment
 				R.anim.slide_up);
 		mSearchPanel.startAnimation(translateAnimation);
 		mSearchPanel.setVisibility(View.GONE);
+
 /*
 		// Creating the expand animation for the item
 		ExpandAnimation expandAni = new ExpandAnimation(mSearchPanel, 500);
@@ -506,6 +506,7 @@ public class VideoListActivityFragment extends Fragment
 	{
 		if(mSearchPanel.getVisibility() != View.VISIBLE)
 		{
+
 			Animation translateAnimation = AnimationUtils.loadAnimation(getActivity(),
 					R.anim.slide_down);
 			mSearchPanel.setVisibility(View.VISIBLE);

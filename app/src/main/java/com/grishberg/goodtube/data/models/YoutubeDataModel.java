@@ -9,6 +9,10 @@ import com.google.api.client.http.HttpRequestInitializer;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.services.youtube.YouTube;
+import com.google.api.services.youtube.model.Playlist;
+import com.google.api.services.youtube.model.PlaylistItem;
+import com.google.api.services.youtube.model.PlaylistItemListResponse;
+import com.google.api.services.youtube.model.PlaylistListResponse;
 import com.google.api.services.youtube.model.SearchListResponse;
 import com.google.api.services.youtube.model.SearchResult;
 import com.google.api.services.youtube.model.Video;
@@ -34,11 +38,13 @@ public class YoutubeDataModel
 	public static final String YOUTUBE_API_KEY			="AIzaSyD0INVrE2YHbGJqhU3iTjzLSPOFDAuactE";
 	public static final String LOCALE_RU				= "RU";
 	public static final String CHART_MOST_POPULAR		= "mostPopular";
+	public static final String MOSTPOPULAR_PLAYLIST_ID	= "PLgMaGEI-ZiiZ0ZvUtduoDRVXcU5ELjPcI";
 
 	private YouTube mYoutube;
 
 	public YoutubeDataModel(Context context)
 	{
+
 		mYoutube = new YouTube.Builder(new NetHttpTransport(), new JacksonFactory(), new HttpRequestInitializer()
 		{
 			@Override
@@ -150,7 +156,46 @@ public class YoutubeDataModel
 		}
 	}
 
-	// популярное
+
+	// популярное playlist
+	private ResultPageContainer getPlaylistMostPopular(String pageToken)
+	{
+		try
+		{
+			YouTube.PlaylistItems.List search	= mYoutube.playlistItems().list("id,snippet");
+			search.setKey(YOUTUBE_API_KEY);
+			search.setPlaylistId(MOSTPOPULAR_PLAYLIST_ID);
+			search.setMaxResults(VideoListActivityFragment.ITEMS_PER_PAGE);
+
+			if(pageToken != null)
+			{
+				search.setPageToken(pageToken);
+			}
+
+			PlaylistItemListResponse response	= search.execute();
+			String nextPageToken		= response.getNextPageToken();
+			String prevPageToken		= response.getPrevPageToken();
+			List<PlaylistItem> results 	= response.getItems();
+
+			List<VideoContainer> items = new ArrayList<VideoContainer>();
+			for(PlaylistItem result:results)
+			{
+				VideoContainer item = new VideoContainer();
+				item.setTitle(result.getSnippet().getTitle());
+				item.setDescription(result.getSnippet().getDescription());
+				item.setThumbnailUrl(result.getSnippet().getThumbnails().getDefault().getUrl());
+				item.setId(result.getSnippet().getResourceId().getVideoId());
+				item.setPublishedAt(result.getSnippet().getPublishedAt().getValue());
+				items.add(item);
+			}
+			return new ResultPageContainer(items, prevPageToken	, nextPageToken) ;
+		}catch(IOException e)
+		{
+			Log.d(TAG, "Could not search: "+e);
+			return null;
+		}
+	}
+	// video.list
 	private ResultPageContainer getMostPopular(String pageToken)
 	{
 		try
@@ -160,6 +205,7 @@ public class YoutubeDataModel
 			search.setRegionCode(LOCALE_RU);
 			search.setChart(CHART_MOST_POPULAR);
 			search.setMaxResults(VideoListActivityFragment.ITEMS_PER_PAGE);
+
 			if(pageToken != null)
 			{
 				search.setPageToken(pageToken);
@@ -242,7 +288,7 @@ public class YoutubeDataModel
 
 			try
 			{
-				result	= getMostPopular(nextPageToken);
+				result = getPlaylistMostPopular(nextPageToken);
 			}
 			catch (Exception e)
 			{
