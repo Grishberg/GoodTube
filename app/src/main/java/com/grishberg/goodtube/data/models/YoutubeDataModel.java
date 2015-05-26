@@ -162,7 +162,7 @@ public class YoutubeDataModel
 	{
 		try
 		{
-			YouTube.PlaylistItems.List search	= mYoutube.playlistItems().list("id,snippet");
+			YouTube.PlaylistItems.List search	= mYoutube.playlistItems().list("snippet");
 			search.setKey(YOUTUBE_API_KEY);
 			search.setPlaylistId(MOSTPOPULAR_PLAYLIST_ID);
 			search.setMaxResults(VideoListActivityFragment.ITEMS_PER_PAGE);

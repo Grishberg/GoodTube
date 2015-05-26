@@ -11,6 +11,7 @@ import android.os.Bundle;
 import android.support.v4.app.FragmentManager;
 import android.util.DisplayMetrics;
 import android.util.Log;
+import android.view.Display;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -49,6 +50,8 @@ import com.grishberg.goodtube.data.containers.ResultPageContainer;
 import com.grishberg.goodtube.data.containers.VideoContainer;
 import com.grishberg.goodtube.data.models.YoutubeDataModel;
 
+import com.grishberg.goodtube.gui.animation.ExpandAnimation;
+import com.grishberg.goodtube.gui.animation.ExpandCollapseAnimation;
 import com.grishberg.goodtube.gui.listeners.GetVideoListListener;
 import com.grishberg.goodtube.gui.listeners.InfinityScrollListener;
 
@@ -120,6 +123,12 @@ public class VideoListActivityFragment extends Fragment
 		mListView			= (ListView) getView().findViewById(R.id.video_list_view);
 		mSearchEdit			= (EditText) getView().findViewById(R.id.searchTextEdit);
 		mSearchPanel		= (RelativeLayout) getView().findViewById(R.id.search_panel);
+
+		// вычисление размера панели, до ее отрисовки на экране и сохранение в LayoutParameter
+		Display display = getActivity().getWindowManager().getDefaultDisplay();
+		mSearchPanel.measure(display.getWidth(), display.getHeight());
+		mSearchPanel.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT
+				,mSearchPanel.getMeasuredHeight()));
 		mSearchPanel.setVisibility(View.GONE);
 
 		mDataModel			= new YoutubeDataModel(getActivity());
@@ -488,22 +497,27 @@ public class VideoListActivityFragment extends Fragment
 
 	public void hideSearchPanel()
 	{
+		/*
 		Animation translateAnimation = AnimationUtils.loadAnimation(getActivity(),
 				R.anim.slide_up);
 		mSearchPanel.startAnimation(translateAnimation);
 		mSearchPanel.setVisibility(View.GONE);
+		*/
 
-/*
+
 		// Creating the expand animation for the item
 		ExpandAnimation expandAni = new ExpandAnimation(mSearchPanel, 500);
+		expandAni.setFillAfter(true);
+		expandAni.setFillEnabled(true);
 
 		// Start the animation on the toolbar
 		mSearchPanel.startAnimation(expandAni);
-*/
+
 	}
 
 	public void showSearchPanel()
 	{
+		/*
 		if(mSearchPanel.getVisibility() != View.VISIBLE)
 		{
 
@@ -512,15 +526,17 @@ public class VideoListActivityFragment extends Fragment
 			mSearchPanel.setVisibility(View.VISIBLE);
 			mSearchPanel.startAnimation(translateAnimation);
 		}
-/*
+		*/
+
 
 		// Creating the expand animation for the item
 		ExpandAnimation expandAni = new ExpandAnimation(mSearchPanel, 500);
-
+		expandAni.setFillAfter(true);
+		expandAni.setFillEnabled(true);
 		// Start the animation on the toolbar
 		mSearchPanel.startAnimation(expandAni);
 
-*/
+
 	}
 
 	// извлечь следующую страницу
